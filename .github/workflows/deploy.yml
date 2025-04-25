@@ -40,7 +40,7 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "./e_learning/*"
-          target: "/var/www/html/springbootAndVue/html/e_learning"
+          target: "/var/www/html/springbootAndVue/html"
 
       - name: Restart Nginx container
         uses: appleboy/ssh-action@v1.0.0
