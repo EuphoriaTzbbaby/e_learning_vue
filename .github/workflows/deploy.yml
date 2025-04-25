@@ -18,8 +18,10 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9 # 你项目中用的版本
 
       - name: Build project
         run: pnpm run build
