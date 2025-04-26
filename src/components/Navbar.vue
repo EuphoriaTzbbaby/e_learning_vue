@@ -9,7 +9,7 @@
 <script lang="ts" setup>
 
 // 动态路径（Vite 专用语法）
-const avatarUrl = new URL(`../assets/${'avatar.jpg'}`, import.meta.url).href;
+const avatarUrl = "http://cwwdka.oss-cn-beijing.aliyuncs.com/e_learning/avatar.jpg"
 </script>
 
 <style scoped>
