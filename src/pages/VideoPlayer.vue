@@ -346,7 +346,7 @@ h1 {
 }
 
 .comment-section {
-  width: 360px;
+  width: 1000px;
   background: #fafafa;
   border-radius: 10px;
   padding: 20px 18px;
