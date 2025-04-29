@@ -8,7 +8,7 @@
 
             <el-table v-if="videos.length" :data="paginatedVideos" style="width: 100%" border stripe>
                 <el-table-column label="序号" width="100" align="center">
-                    <template #default="{ row, $index }">
+                    <template #default="{ $index }">
                         <span>{{ ($index + 1) + (currentPage - 1) * pageSize }}</span>
                     </template>
                 </el-table-column>
@@ -61,8 +61,7 @@ const VideoList = defineComponent({
 
         const fetchVideos = async () => {
             try {
-                const albumId = 1;
-                const response = await videoApi.getAllVideos(albumId);
+                const response = await videoApi.getAllVideos();
                 videos.value = response.data;
             } catch (error) {
                 console.error('Error fetching videos:', error);
@@ -84,6 +83,7 @@ const VideoList = defineComponent({
         };
 
         const editVideo = (video: any) => {
+            console.log('Editing video:', video);
             // Logic to edit video
         };
 
