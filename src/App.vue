@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useRoute } from 'vue-router'
+// import { useRoute } from 'vue-router'
 // import { computed } from 'vue'
 // import Navbar from './components/Navbar.vue'
 

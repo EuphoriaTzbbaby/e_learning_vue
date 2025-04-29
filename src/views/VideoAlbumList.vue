@@ -50,6 +50,7 @@ export default defineComponent({
         };
 
         const editAlbum = (album: any) => {
+            console.log('Editing album:', album);
             // Logic to edit album
         };
 
