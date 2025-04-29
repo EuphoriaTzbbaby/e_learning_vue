@@ -5,7 +5,7 @@ const videoAlbumApi = {
   getAllAlbums: () => get('/videoAlbum/select/all', {}),
 
   // 创建视频合集
-  createAlbum: (data: object) => post('/videoAlbum/insert', data),
+  addAlbum: (data: object) => post('/videoAlbum/insert', data),
 
   // 更新视频合集
   updateAlbum: (data: object) => put('/videoAlbum/update', data),

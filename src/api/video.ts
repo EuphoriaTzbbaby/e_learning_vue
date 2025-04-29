@@ -5,7 +5,7 @@ const videoApi = {
     getAllVideos: () => get('/video/select/all'),
 
     // 创建视频
-    createVideo: (data: object) => post('/video/insert', data),
+    addVideo: (data: object) => post('/video/insert', data),
 
     // 更新视频
     updateVideo: (data: object) => put('/video/update', data),

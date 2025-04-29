@@ -3,7 +3,7 @@
         <el-card class="video-card">
             <div class="header">
                 <h2>视频管理</h2>
-                <el-button type="primary" @click="addVideo">新增视频</el-button>
+                <el-button type="primary" @click="openAddDialog">新增视频</el-button>
             </div>
 
             <el-table v-if="videos.length" :data="paginatedVideos" style="width: 100%" border stripe>
@@ -13,27 +13,23 @@
                     </template>
                 </el-table-column>
 
-                <!-- 视频标题列，去除 .mp4 后缀 -->
                 <el-table-column prop="title" label="视频标题" width="200" align="center">
                     <template #default="{ row }">
                         <span>{{ row.title.replace('.mp4', '') }}</span>
                     </template>
                 </el-table-column>
 
-                <!-- 时长列 -->
                 <el-table-column prop="duration" label="时长" width="150" align="center" />
 
-                <!-- 视频地址列，只编码中文部分 -->
                 <el-table-column label="视频地址" align="center">
                     <template #default="{ row }">
                         <span>{{ encodeChineseUrl(row.videoUrl) }}</span>
                     </template>
                 </el-table-column>
 
-                <!-- 操作列 -->
                 <el-table-column label="操作" width="300" align="center">
                     <template #default="{ row }">
-                        <el-button size="medium" type="primary" @click="editVideo(row)">编辑</el-button>
+                        <el-button size="medium" type="primary" @click="openEditDialog(row)">编辑</el-button>
                         <el-button size="medium" type="danger" @click="deleteVideo(row.id)">删除</el-button>
                     </template>
                 </el-table-column>
@@ -41,23 +37,70 @@
 
             <el-empty v-else description="暂无视频" />
 
-            <!-- 分页 -->
             <el-pagination v-if="videos.length" :current-page="currentPage" :page-size="pageSize" :total="videos.length"
                 layout="prev, pager, next, jumper, ->, total" @current-change="handlePageChange" />
         </el-card>
+
+        <el-dialog v-model="dialogVisible" :title="isEditMode ? '编辑视频' : '新增视频'" width="600px">
+            <el-form :model="formVideo" label-width="100px">
+                <el-form-item label="所属专辑 ID">
+                    <el-input v-model="formVideo.albumId" type="number" />
+                </el-form-item>
+
+                <el-form-item label="视频标题">
+                    <el-input v-model="formVideo.title" />
+                </el-form-item>
+
+                <el-form-item label="OSS Key">
+                    <el-input v-model="formVideo.ossKey" />
+                </el-form-item>
+
+                <el-form-item label="视频地址">
+                    <el-input v-model="formVideo.videoUrl" />
+                </el-form-item>
+
+                <el-form-item label="视频时长">
+                    <el-input v-model="formVideo.duration" type="number" />
+                </el-form-item>
+
+                <el-form-item label="排序值">
+                    <el-input v-model="formVideo.sortOrder" type="number" />
+                </el-form-item>
+            </el-form>
+
+            <template #footer>
+                <el-button @click="dialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitVideo">{{ isEditMode ? '保存修改' : '确定' }}</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, computed } from 'vue';
 import videoApi from '../api/video';
+import dayjs from 'dayjs';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
-const VideoList = defineComponent({
+export default defineComponent({
     name: 'VideoList',
     setup() {
         const videos = ref([]);
         const currentPage = ref(1);
         const pageSize = 10;
+
+        const dialogVisible = ref(false);
+        const isEditMode = ref(false);
+        const formVideo = ref({
+            id: null,
+            albumId: 1,
+            title: '',
+            ossKey: '',
+            videoUrl: '',
+            duration: 0,
+            sortOrder: 0,
+            createTime: ''
+        });
 
         const fetchVideos = async () => {
             try {
@@ -68,38 +111,81 @@ const VideoList = defineComponent({
             }
         };
 
+        const handlePageChange = (page: number) => {
+            currentPage.value = page;
+        };
+
         const paginatedVideos = computed(() => {
             const start = (currentPage.value - 1) * pageSize;
             const end = start + pageSize;
             return videos.value.slice(start, end);
         });
 
-        const handlePageChange = (page: number) => {
-            currentPage.value = page;
+        const encodeChineseUrl = (url: string) => {
+            return url.replace(/[\u4e00-\u9fa5]+/g, (match) => encodeURIComponent(match));
         };
 
-        const addVideo = () => {
-            // Logic to add a new video
+        const openAddDialog = () => {
+            isEditMode.value = false;
+            formVideo.value = {
+                id: null,
+                albumId: 1,
+                title: '',
+                ossKey: '',
+                videoUrl: '',
+                duration: 0,
+                sortOrder: 0,
+                createTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
+            };
+            dialogVisible.value = true;
         };
 
-        const editVideo = (video: any) => {
-            console.log('Editing video:', video);
-            // Logic to edit video
+        const openEditDialog = (video: any) => {
+            isEditMode.value = true;
+            formVideo.value = { ...video };
+            dialogVisible.value = true;
+        };
+
+        const submitVideo = async () => {
+            try {
+                if (isEditMode.value) {
+                    await videoApi.updateVideo(formVideo.value);
+                    ElMessage.success('视频更新成功');
+                } else {
+                    await videoApi.addVideo(formVideo.value);
+                    ElMessage.success('视频新增成功');
+                }
+                dialogVisible.value = false;
+                fetchVideos();
+            } catch (error) {
+                console.error('操作失败：', error);
+                ElMessage.error('操作失败');
+            }
         };
 
         const deleteVideo = async (id: number) => {
             try {
+                await ElMessageBox.confirm(
+                    '确定要删除该视频吗？此操作不可撤销。',
+                    '删除确认',
+                    {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning',
+                    }
+                );
+
                 await videoApi.deleteVideo(id);
-                fetchVideos(); // Refresh video list
+                ElMessage.success('删除成功');
+                fetchVideos();
             } catch (error) {
-                console.error('Error deleting video:', error);
+                if (error !== 'cancel') {
+                    console.error('删除失败：', error);
+                    ElMessage.error('删除失败');
+                }
             }
         };
 
-        // Encode only the Chinese part of the URL
-        const encodeChineseUrl = (url: string) => {
-            return url.replace(/[\u4e00-\u9fa5]+/g, (match) => encodeURIComponent(match));
-        };
 
         onMounted(fetchVideos);
 
@@ -108,14 +194,16 @@ const VideoList = defineComponent({
             currentPage,
             pageSize,
             paginatedVideos,
-            addVideo,
-            editVideo,
+            dialogVisible,
+            formVideo,
+            isEditMode,
+            openAddDialog,
+            openEditDialog,
+            submitVideo,
             deleteVideo,
             handlePageChange,
-            encodeChineseUrl,
+            encodeChineseUrl
         };
-    },
+    }
 });
-
-export default VideoList;
 </script>
