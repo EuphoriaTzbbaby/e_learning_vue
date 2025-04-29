@@ -27,10 +27,11 @@
                     </template>
                 </el-table-column>
 
-                <el-table-column label="操作" width="300" align="center">
+                <el-table-column label="操作" width="400" align="center">
                     <template #default="{ row }">
                         <el-button size="medium" type="primary" @click="openEditDialog(row)">编辑</el-button>
                         <el-button size="medium" type="danger" @click="deleteVideo(row.id)">删除</el-button>
+                        <el-button size="medium" type="success" @click="viewVideo(row.videoUrl)">查看</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -73,6 +74,12 @@
                 <el-button type="primary" @click="submitVideo">{{ isEditMode ? '保存修改' : '确定' }}</el-button>
             </template>
         </el-dialog>
+
+        <!-- 视频播放对话框 -->
+        <el-dialog v-model="playDialogVisible" :title="'播放视频'" width="80%">
+            <video v-if="playVideoUrl" :src="playVideoUrl" controls autoplay style="width: 100%; height: 80vh;"></video>
+            <span v-else>暂无视频播放链接</span>
+        </el-dialog>
     </div>
 </template>
 
@@ -101,6 +108,10 @@ export default defineComponent({
             sortOrder: 0,
             createTime: ''
         });
+
+        // 播放视频的对话框
+        const playDialogVisible = ref(false);
+        const playVideoUrl = ref('');
 
         const fetchVideos = async () => {
             try {
@@ -186,6 +197,10 @@ export default defineComponent({
             }
         };
 
+        const viewVideo = (videoUrl: string) => {
+            playVideoUrl.value = videoUrl;
+            playDialogVisible.value = true;
+        };
 
         onMounted(fetchVideos);
 
@@ -202,8 +217,31 @@ export default defineComponent({
             submitVideo,
             deleteVideo,
             handlePageChange,
-            encodeChineseUrl
+            encodeChineseUrl,
+            playDialogVisible,
+            playVideoUrl,
+            viewVideo
         };
     }
 });
 </script>
+
+<style scoped>
+.video-page {
+    padding: 20px;
+}
+
+.video-card {
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.video-table {
+    width: 100%;
+}
+</style>

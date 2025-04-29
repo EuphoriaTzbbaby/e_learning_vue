@@ -6,7 +6,7 @@ import VideoList from '../views/VideoList.vue'
 import VideoAlbumList from '../views/VideoAlbumList.vue'
 
 const routes = [
-  { path: '/', redirect: '/admin' },
+  { path: '/', redirect: '/admin/videoList' },
   { path: '/login', component: Login },
   { path: '/videoPlayer', name: 'videoPlayer', component: VideoPlayer },
 
