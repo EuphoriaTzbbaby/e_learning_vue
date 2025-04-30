@@ -1,11 +1,9 @@
 <template>
     <div class="admin-layout">
-        <aside class="sidebar">
-            <div class="logo">
-                <span>E_learning平台</span>
-            </div>
-            <el-menu class="menu" router :default-active="$route.path" background-color="#2d3a4b" text-color="#ffffff"
-                active-text-color="#409EFF">
+        <!-- 顶部菜单栏（左侧菜单移到顶部） -->
+        <div class="top-menu">
+            <el-menu class="top-menu-bar" router :default-active="$route.path" background-color="#2d3a4b"
+                text-color="#ffffff" active-text-color="#409EFF" mode="horizontal">
                 <el-menu-item index="/admin/videoList">
                     <i class="el-icon-video-camera"></i>
                     <span>视频管理</span>
@@ -15,7 +13,9 @@
                     <span>合集管理</span>
                 </el-menu-item>
             </el-menu>
-        </aside>
+        </div>
+
+        <!-- 主内容区域 -->
         <main class="main-content">
             <router-view />
         </main>
@@ -23,39 +23,34 @@
 </template>
 
 <script lang="ts" setup>
-// import { useRoute } from 'vue-router'
+// script 部分可以根据需要添加
 </script>
 
 <style scoped>
 .admin-layout {
     display: flex;
+    flex-direction: column;
+    /* 垂直排列，顶部菜单和主内容 */
     height: 100vh;
     background-color: #f0f2f5;
 }
 
-.sidebar {
-    width: 240px;
-    background-color: #2d3a4b;
-    display: flex;
-    flex-direction: column;
+/* 顶部菜单栏样式 */
+.top-menu {
+    width: 100%;
 }
 
-.logo {
+.top-menu-bar {
     height: 60px;
     line-height: 60px;
-    font-size: 18px;
-    font-weight: bold;
-    color: white;
-    text-align: center;
-    border-bottom: 1px solid #1f2b3a;
-    background-color: #1f2b3a;
+    /* 垂直居中菜单项 */
+    background-color: #2d3a4b;
+    text-color: white;
+    border-radius: 4px;
+    padding: 0;
 }
 
-.menu {
-    flex: 1;
-    border-right: none;
-}
-
+/* 主内容区域样式 */
 .main-content {
     flex: 1;
     padding: 24px;
