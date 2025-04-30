@@ -1,3 +1,4 @@
+```vue
 <template>
     <div class="comment-section">
         <h3>评论区</h3>
@@ -31,6 +32,23 @@
                                 {{ reply.content }}
                             </template>
                         </div>
+                        <div class="reply-actions">
+                            <button @click="toggleReplyInput(comment.id, reply.id)"
+                                :aria-expanded="showReplyInputId === comment.id && showReplyInputReplyId === reply.id">
+                                {{ showReplyInputId === comment.id && showReplyInputReplyId === reply.id ? '取消回复' : '回复'
+                                }}
+                            </button>
+
+                            <div v-if="showReplyInputId === comment.id && showReplyInputReplyId === reply.id"
+                                class="reply-input">
+                                <textarea v-model="replyContent" placeholder="写回复..." rows="2"
+                                    aria-label="回复输入框"></textarea>
+                                <button @click="addReply(comment.id)" :disabled="!replyContent.trim()"
+                                    :aria-disabled="!replyContent.trim()">
+                                    发送
+                                </button>
+                            </div>
+                        </div>
                     </li>
                 </ul>
 
@@ -39,7 +57,7 @@
                         {{ showReplyInputId === comment.id ? '取消回复' : '回复' }}
                     </button>
 
-                    <div v-if="showReplyInputId === comment.id" class="reply-input">
+                    <div v-if="showReplyInputId === comment.id && showReplyInputReplyId === null" class="reply-input">
                         <textarea v-model="replyContent" placeholder="写回复..." rows="2" aria-label="回复输入框"></textarea>
                         <button @click="addReply(comment.id)" :disabled="!replyContent.trim()"
                             :aria-disabled="!replyContent.trim()">
@@ -78,6 +96,7 @@ const currentUser = '匿名用户'
 const newComment = ref('')
 const replyContent = ref('')
 const showReplyInputId = ref<number | null>(null)
+const showReplyInputReplyId = ref<number | null>(null) // 新增：跟踪回复的二级评论 ID
 let currentReplyToUser = ''
 
 let commentId = 1
@@ -94,18 +113,31 @@ function addComment() {
     })
     newComment.value = ''
     showReplyInputId.value = null
+    showReplyInputReplyId.value = null
 }
 
-function toggleReplyInput(id: number) {
-    if (showReplyInputId.value === id) {
+function toggleReplyInput(commentId: number, replyId?: number) {
+    if (showReplyInputId.value === commentId && showReplyInputReplyId.value === (replyId ?? null)) {
+        // 取消回复
         showReplyInputId.value = null
+        showReplyInputReplyId.value = null
         replyContent.value = ''
         currentReplyToUser = ''
     } else {
-        showReplyInputId.value = id
+        // 打开回复输入框
+        showReplyInputId.value = commentId
+        showReplyInputReplyId.value = replyId ?? null
         replyContent.value = ''
-        const comment = comments.value.find(c => c.id === id)
-        currentReplyToUser = comment ? comment.user : ''
+        if (replyId) {
+            // 回复二级评论
+            const comment = comments.value.find(c => c.id === commentId)
+            const reply = comment?.replies.find(r => r.id === replyId)
+            currentReplyToUser = reply ? reply.user : ''
+        } else {
+            // 回复一级评论
+            const comment = comments.value.find(c => c.id === commentId)
+            currentReplyToUser = comment ? comment.user : ''
+        }
     }
 }
 
@@ -123,6 +155,7 @@ function addReply(commentIdToReply: number) {
     }
     replyContent.value = ''
     showReplyInputId.value = null
+    showReplyInputReplyId.value = null
     currentReplyToUser = ''
 }
 </script>
@@ -324,3 +357,4 @@ function addReply(commentIdToReply: number) {
     user-select: text;
 }
 </style>
+```

@@ -1,6 +1,6 @@
 <template>
   <div class="video-container">
-    <h1>一口气看完《3分钟小故事》完整版合集</h1>
+    <h1>一口气看完《{{ currentVideoAlbum }}》完整版合集</h1>
     <div class="video-meta">
       <span class="author">吴越王</span>
       <span class="views">9.8万 浏览</span>
@@ -33,18 +33,36 @@
 import CommentSection from './CommentSection.vue'
 import { ref, onMounted } from 'vue'
 import { get } from '../utils/axios/index'
-
+import { useRoute } from 'vue-router'
 const videos = ref<string[]>([])
 const currentVideo = ref<string | null>(null)
 const currentVideoUrl = ref<string>('')
 
 const ossBaseUrl = 'https://cwwdka.oss-cn-beijing.aliyuncs.com/'
-const prefix = 'e_learning/3分钟小故事/'
+function extractPrefix(url: string): string {
+  const base = 'https://cwwdka.oss-cn-beijing.aliyuncs.com/'
+  if (!url.startsWith(base)) return ''
+  const path = url.slice(base.length) // 去掉前缀
+  const parts = path.split('/')
+  currentVideoAlbum.value = parts[1]
+  return parts.length >= 2 ? `e_learning/${parts[1]}/` : ''
+}
+const route = useRoute()
+const coverUrl = route.query.coverUrl as string || ''
+const currentVideoAlbum = ref('')
+const prefix = extractPrefix(coverUrl)
 
 async function fetchVideoList() {
   try {
-    const response = await get('/api/videos', { prefix })
-    videos.value = response.data
+    const response = await get('/api/oss/videos', { prefix })
+    const allVideos: string[] = response.data // 明确声明为 string[] 类型
+
+    // 过滤掉 .mp4 后缀的文件，去除 .mp4 后缀，同时排除 .jpg 文件
+    videos.value = allVideos.filter((video: string) => {
+      const extension = video.slice(-4).toLowerCase(); // 获取文件后缀
+      return extension === '.mp4' && !video.endsWith('.jpg');
+    })
+
     if (videos.value.length > 0) {
       playVideo(videos.value[0])
     }
@@ -53,6 +71,9 @@ async function fetchVideoList() {
   }
 }
 
+
+
+
 function playVideo(videoName: string) {
   currentVideo.value = videoName
   currentVideoUrl.value = ossBaseUrl + encodeURIComponent(videoName)
@@ -60,7 +81,7 @@ function playVideo(videoName: string) {
 
 function getPureName(fullPath: string | null) {
   if (!fullPath) return ''
-  return fullPath.replace(prefix, '')
+  return fullPath.replace(prefix, '').slice(0, -4)
 }
 
 onMounted(() => {

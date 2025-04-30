@@ -5,10 +5,12 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import VideoList from '../views/VideoList.vue'
 import VideoAlbumList from '../views/VideoAlbumList.vue'
 import Love from '../views/amusement/loveYou.vue'
+import StudentLayout from '../layouts/StudentLayout.vue'
+import CourseList from '../views/CourseList.vue'
+import component from 'element-plus/es/components/tree-select/src/tree-select-option.mjs'
 const routes = [
-  { path: '/', redirect: '/admin/videoList' },
+  { path: '/', redirect: 'videoPlayer' },
   { path: '/login', component: Login },
-  { path: '/videoPlayer', name: 'videoPlayer', component: VideoPlayer },
   {
     path: '/love',
     name: 'love',
@@ -28,6 +30,22 @@ const routes = [
         name: 'videoAlbumList',
         component: VideoAlbumList
       }
+    ]
+  },
+  {
+    path: '/student',
+    component: StudentLayout,
+    children: [
+      {
+        path: 'courseList',
+        name: 'courseList',
+        component: CourseList
+      },
+      {
+        path: 'videoPlayer',
+        name: 'videoPlayer',
+        component: VideoPlayer
+      },
     ]
   }
 ]
