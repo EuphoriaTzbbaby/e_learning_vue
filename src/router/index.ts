@@ -7,7 +7,6 @@ import VideoAlbumList from '../views/VideoAlbumList.vue'
 import Love from '../views/amusement/loveYou.vue'
 import StudentLayout from '../layouts/StudentLayout.vue'
 import CourseList from '../views/CourseList.vue'
-import component from 'element-plus/es/components/tree-select/src/tree-select-option.mjs'
 const routes = [
   { path: '/', redirect: 'videoPlayer' },
   { path: '/login', component: Login },

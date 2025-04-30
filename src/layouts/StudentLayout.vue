@@ -54,7 +54,7 @@
     </el-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ArrowDown, Reading, Star, Setting } from '@element-plus/icons-vue'
