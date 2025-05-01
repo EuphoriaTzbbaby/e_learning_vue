@@ -55,15 +55,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ArrowDown, Reading, Star, Setting } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
-
-const userAvatar = ref('https://via.placeholder.com/40') // 可替换为 OSS 链接
-const username = ref('张三') // 通过 API 获取或登录信息
+const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null
+const userAvatar = "https://cwwdka.oss-cn-beijing.aliyuncs.com/e_learning/" + currentUser.avatar
+const username = currentUser.username // 通过 API 获取或登录信息
 
 const activeMenu = ref(route.path)
 
@@ -75,6 +75,9 @@ const logout = () => {
     // 清除token等逻辑
     router.push('/login')
 }
+onMounted(() => {
+    console.log(userAvatar)
+})
 </script>
 
 <style scoped>
