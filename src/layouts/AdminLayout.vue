@@ -12,6 +12,14 @@
                     <i class="el-icon-collection"></i>
                     <span>合集管理</span>
                 </el-menu-item>
+                <el-menu-item index="/admin/comment">
+                    <!-- <i class="el-icon-collection"></i> -->
+                    <span>评论管理</span>
+                </el-menu-item>
+                <el-menu-item index="/admin/reply">
+                    <!-- <i class="el-icon-collection"></i> -->
+                    <span>回复管理</span>
+                </el-menu-item>
                 <!-- 不让它触发路由 -->
                 <el-menu-item @click="openUploadDialog">
                     <el-button type="primary" link>添加文件/视频</el-button>

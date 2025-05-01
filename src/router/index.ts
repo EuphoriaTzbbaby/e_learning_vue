@@ -7,8 +7,10 @@ import VideoAlbumList from '../views/VideoAlbumList.vue'
 import Love from '../views/amusement/loveYou.vue'
 import StudentLayout from '../layouts/StudentLayout.vue'
 import CourseList from '../views/CourseList.vue'
+import Comment from '../views/Comment.vue'
+import Reply from '../views/Reply.vue'
 const routes = [
-  { path: '/', redirect: 'videoPlayer' },
+  { path: '/', redirect: 'login' },
   { path: '/login', component: Login },
   {
     path: '/love',
@@ -28,11 +30,22 @@ const routes = [
         path: 'videoAlbumList',
         name: 'videoAlbumList',
         component: VideoAlbumList
+      },
+      {
+        path: 'comment',
+        name: 'comment',
+        component: Comment
+      },
+      {
+        path: 'reply',
+        name: 'reply',
+        component: Reply
       }
     ]
   },
   {
     path: '/student',
+    name: 'student',
     component: StudentLayout,
     children: [
       {

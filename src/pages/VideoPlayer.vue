@@ -1,6 +1,6 @@
 <template>
   <div class="video-container">
-    <h1>一口气看完《{{ currentVideoAlbum }}》完整版合集</h1>
+    <h1>一口气看完《{{ title }}》完整版合集</h1>
     <div class="video-meta">
       <span class="author">吴越王</span>
       <span class="views">9.8万 浏览</span>
@@ -13,75 +13,69 @@
     <div class="content">
       <div class="video-player" v-if="currentVideoUrl">
         <video controls :src="currentVideoUrl" autoplay></video>
-        <h3 class="now-playing">正在播放: {{ getPureName(currentVideo) }}</h3>
         <p class="tip">关注微信公众号 <span class="highlight">"小猫助手"</span> 获取更多资料</p>
       </div>
 
       <ul class="video-list" role="list" aria-label="视频列表">
-        <li v-for="video in videos" :key="video" @click="playVideo(video)" :class="{ active: video === currentVideo }"
-          title="点击播放" tabindex="0" @keydown.enter.prevent="playVideo(video)" @keydown.space.prevent="playVideo(video)"
-          role="listitem" aria-current="true">
+        <li v-for="video in videos" :key="video.id" @click="playVideo(video)"
+          :class="{ active: video === currentVideo }" title="点击播放" tabindex="0"
+          @keydown.enter.prevent="playVideo(video)" @keydown.space.prevent="playVideo(video)" role="listitem"
+          aria-current="true">
           {{ getPureName(video) }}
         </li>
       </ul>
     </div>
-    <CommentSection />
+
+    <!-- 向 CommentSection 传递当前播放视频的 id -->
+    <CommentSection v-if="currentVideo" :videoId="currentVideo.id" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import CommentSection from './CommentSection.vue'
+import CommentSection from '../pages/CommentSection.vue'
 import { ref, onMounted } from 'vue'
-import { get } from '../utils/axios/index'
 import { useRoute } from 'vue-router'
-const videos = ref<string[]>([])
-const currentVideo = ref<string | null>(null)
+import videoApi from '../api/video'
+
+interface VideoItem {
+  id: number
+  title: string
+  ossKey: string
+  videoUrl?: string
+  duration?: number
+  sortOrder?: number
+}
+
+const route = useRoute()
+const albumId = Number(route.query.albumId)
+const title = route.query.title
+const videos = ref<VideoItem[]>([])
+const currentVideo = ref<VideoItem | null>(null)
 const currentVideoUrl = ref<string>('')
 
 const ossBaseUrl = 'https://cwwdka.oss-cn-beijing.aliyuncs.com/'
-function extractPrefix(url: string): string {
-  const base = 'https://cwwdka.oss-cn-beijing.aliyuncs.com/'
-  if (!url.startsWith(base)) return ''
-  const path = url.slice(base.length) // 去掉前缀
-  const parts = path.split('/')
-  currentVideoAlbum.value = parts[1]
-  return parts.length >= 2 ? `e_learning/${parts[1]}/` : ''
-}
-const route = useRoute()
-const coverUrl = route.query.coverUrl as string || ''
-const currentVideoAlbum = ref('')
-const prefix = extractPrefix(coverUrl)
 
 async function fetchVideoList() {
   try {
-    const response = await get('/api/oss/videos', { prefix })
-    const allVideos: string[] = response.data // 明确声明为 string[] 类型
-
-    // 过滤掉 .mp4 后缀的文件，去除 .mp4 后缀，同时排除 .jpg 文件
-    videos.value = allVideos.filter((video: string) => {
-      const extension = video.slice(-4).toLowerCase(); // 获取文件后缀
-      return extension === '.mp4' && !video.endsWith('.jpg');
-    })
+    const response = await videoApi.getVideosByAlbumId(albumId)
+    videos.value = response.data // 获取的视频数据数组
 
     if (videos.value.length > 0) {
-      playVideo(videos.value[0])
+      playVideo(videos.value[0]) // 默认播放第一个视频
     }
   } catch (error) {
     console.error('获取视频列表失败：', error)
   }
 }
 
-
-
-
-function playVideo(videoName: string) {
-  currentVideo.value = videoName
-  currentVideoUrl.value = ossBaseUrl + encodeURIComponent(videoName)
+function playVideo(video: VideoItem) {
+  currentVideo.value = video
+  currentVideoUrl.value = ossBaseUrl + encodeURIComponent(video.ossKey)
 }
 
-function getPureName(fullPath: string | null) {
-  if (!fullPath) return ''
-  return fullPath.replace(prefix, '').slice(0, -4)
+function getPureName(video: VideoItem | null) {
+  if (!video) return ''
+  return video.title.slice(0, -4)
 }
 
 onMounted(() => {

@@ -3,7 +3,7 @@ import { get, post, put, del } from '../utils/axios'; // 引入自定义的 axio
 const videoApi = {
     // 获取所有视频
     getAllVideos: () => get('/video/select/all'),
-
+    getVideosByAlbumId: (id: number) => get(`/video/select/byAlbumId/${id}`),
     // 创建视频
     addVideo: (data: object) => post('/video/insert', data),
 

@@ -79,10 +79,12 @@ const handlePageChange = (page: number) => {
 }
 
 const goToDetail = (album: any) => {
+    console.log('进入学习', album)
     router.push({
         name: 'videoPlayer',
         query: {
-            coverUrl: album.coverUrl,
+            title: album.title,
+            albumId: album.id
         }
     })
 }

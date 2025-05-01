@@ -59,9 +59,11 @@
         // 根据后端返回的数据做处理
         console.log('登录结果', res.data)
         if (res.data) {
+
           alert(`登录成功！欢迎用户：${form.email}`)
+          localStorage.setItem('user', JSON.stringify(res.data))
           router.push({
-            name : "videoPlayer"
+            name : "student"
           })
           // 这里可以做跳转或者存储登录状态
         } else {
