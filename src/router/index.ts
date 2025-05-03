@@ -9,9 +9,15 @@ import StudentLayout from '../layouts/StudentLayout.vue'
 import CourseList from '../views/CourseList.vue'
 import Comment from '../views/Comment.vue'
 import Reply from '../views/Reply.vue'
+import Cf from '../views/amusement/Cf.vue'
 const routes = [
   { path: '/', redirect: 'login' },
   { path: '/login', component: Login },
+  {
+    path: '/cf',
+    name: 'cf',
+    component: Cf
+  },
   {
     path: '/love',
     name: 'love',
