@@ -77,7 +77,7 @@
 
   onMounted(() => {
     alert("目前先选student进行登录, 账号格式为 userxx@example.com, 密码格式为 passxx, x 取值为[1, 8, 9, 16, 18, 19, 20], 看后台管理把当前url后缀login改成admin")
-    console.log("cnm")
+    console.log("cnm777")
     document.title = 'E_learning平台'
   })
   </script>
