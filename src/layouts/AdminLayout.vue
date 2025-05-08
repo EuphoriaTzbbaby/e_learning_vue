@@ -107,6 +107,7 @@ const fetchFolders = async () => {
 }
 
 onMounted(() => {
+    alert("所有操作只在自己新加的内容上操作")
     fetchFolders()
 })
 </script>
