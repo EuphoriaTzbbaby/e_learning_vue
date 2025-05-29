@@ -128,7 +128,7 @@ export default defineComponent({
                     commentId: formReply.value.commentId,
                     createTime: formReply.value.createTime
                 };
-
+                console.log(formReply.value, 6666666)
                 if (isEditMode.value && formReply.value.id !== null) {
                     await replyApi.updateReply(formReply.value.id, formReply.value.content);
                     ElMessage.success('回复更新成功');
