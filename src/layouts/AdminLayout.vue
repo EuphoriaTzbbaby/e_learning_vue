@@ -128,7 +128,7 @@ onMounted(() => {
     height: 60px;
     line-height: 60px;
     background-color: #2d3a4b;
-    text-color: white;
+    color: white;
     border-radius: 0;
     padding: 0;
 }
