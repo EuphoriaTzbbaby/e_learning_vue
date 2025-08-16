@@ -7,7 +7,7 @@
 
     <div v-if="targetName" class="main-area">
       <div class="target" @click="beat">
-        <img src="../assets/avatar.jpg" alt="target" class="face" :class="{ hit: isHitting }" />
+        <!-- <img src="../assets/avatar.jpg" alt="target" class="face" :class="{ hit: isHitting }" /> -->
         <div class="name-label">{{ targetName }}</div>
       </div>
       <div class="counter">已击打：{{ count }} 次</div>
