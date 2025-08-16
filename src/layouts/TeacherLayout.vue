@@ -103,7 +103,7 @@
         }
       }
   
-      const beforeUpload = (file: File) => {
+      const beforeUpload = (_file: File) => {
         if (!selectedPrefix.value) {
           ElMessage.warning('请先选择目录')
           return false

@@ -85,7 +85,18 @@ import dayjs from 'dayjs';
 export default defineComponent({
   name: 'NoteCommentList',
   setup() {
-    const comments = ref([]);
+    interface Comment {
+      id: number;
+      noteId: string;
+      userId: string;
+      nickname: string;
+      gender: string;
+      ipLocation: string;
+      content: string;
+      likeCount: number;
+      createdAt: string;
+    }
+    const comments = ref<Comment[]>([]);
     const currentPage = ref(1);
     const pageSize = 10;
     const selectVal = ref('');
@@ -100,7 +111,17 @@ export default defineComponent({
 
     const fetchComments = async () => {
       try {
-        comments.value = await noteCommentsApi.getAllComments();
+        comments.value = (await noteCommentsApi.getAllComments()) as Array<{
+          id: number;
+          noteId: string;
+          userId: string;
+          nickname: string;
+          gender: string;
+          ipLocation: string;
+          content: string;
+          likeCount: number;
+          createdAt: string;
+        }>;
       } catch (err) {
         ElMessage.error('获取评论失败');
         console.error(err);
@@ -113,7 +134,17 @@ export default defineComponent({
         return;
       }
       try {
-        comments.value = await noteCommentsApi.getCommentsBySelectVal(selectVal.value.trim());
+        comments.value = (await noteCommentsApi.getCommentsBySelectVal(selectVal.value.trim())) as Array<{
+          id: number;
+          noteId: string;
+          userId: string;
+          nickname: string;
+          gender: string;
+          ipLocation: string;
+          content: string;
+          likeCount: number;
+          createdAt: string;
+        }>;
         currentPage.value = 1;
       } catch (err) {
         ElMessage.error('搜索失败');

@@ -73,9 +73,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, openBlock } from 'vue'
+import { ref, onMounted} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowDown, Reading, Star, Setting, Notebook, Edit } from '@element-plus/icons-vue'
+import { ArrowDown, Reading, Star, Setting, Notebook} from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
