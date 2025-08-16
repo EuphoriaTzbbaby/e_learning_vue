@@ -1,0 +1,51 @@
+name: Deploy Vue Project to Server
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9 # 你项目中用的版本 ffff
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build project
+        run: pnpm run build
+
+      # ✅ 重命名 dist 为 e_learning
+      - name: Rename dist to e_learning
+        run: mv dist e_learning
+
+      - name: Copy e_learning to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 47.101.42.177
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "./e_learning/*"
+          target: "/var/www/html/springbootAndVue/html"
+
+      - name: Restart Nginx container
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 47.101.42.177
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: docker restart nginx
