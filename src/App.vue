@@ -8,7 +8,7 @@
 <script lang="ts" setup>
 // import { useRoute } from 'vue-router'
 // import { computed } from 'vue'
-// import Navbar from './components/Navbar.vue'
+// import Navbar from './components/Navbar.vue' 8888
 
 // const route = useRoute()
 
