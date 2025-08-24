@@ -34,7 +34,40 @@
       <!-- <el-button type="primary" @click="fetchEnglishList" style="margin-bottom: 15px">
         刷新词库
       </el-button> -->
+          <!-- 弹窗 -->
+    <el-dialog v-model="dialogVisible" :title="isEditMode ? '编辑内容' : '新增内容'" width="600px">
+      <el-form :model="form" label-width="100px">
+        <el-form-item label="英文内容">
+          <el-input v-model="form.content" type="textarea" />
+        </el-form-item>
+        <el-form-item label="关键词">
+          <el-input v-model="form.coreKey" />
+        </el-form-item>
+        <el-form-item label="翻译">
+          <el-input v-model="form.translation" type="textarea" />
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="form.comment" />
+        </el-form-item>
+        <el-form-item label="是否熟悉">
+          <el-input v-model="form.isTaboo" />
+        </el-form-item>
+        <el-form-item label="练习次数">
+          <el-input v-model="form.textCnt" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="form.status" placeholder="请选择">
+            <el-option label="草稿" value="draft" />
+            <el-option label="发布" value="published" />
+          </el-select>
+        </el-form-item>
+      </el-form>
 
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitEnglish">{{ isEditMode ? '保存修改' : '确定' }}</el-button>
+      </template>
+    </el-dialog>
       <div v-if="currentWord">
         <p>
           提示关键词：<b>{{ currentWord.coreKey }}</b><br />
@@ -77,9 +110,10 @@
           <el-button type="warning" @click="goWhere(-1)">上一个</el-button>
           <el-button type="warning" @click="goWhere(1)">下一个</el-button>
           <el-button type="primary" @click="updateIsTaboo(currentWord)">已熟悉</el-button>
+          <el-button type="info" @click="openEditDialog(currentWord)">编辑</el-button>
         </div>
       </div>
-
+      
       <el-empty v-else description="暂无单词，请刷新词库或添加内容" />
     </el-card>
   </div>
@@ -116,6 +150,47 @@ const typedAnswer = ref('');
 const showHint = ref(false);
 let hintTimeout: number | null = null;
 const currentIndex = ref(0)
+const isEditMode = ref(false)
+const dialogVisible = ref(false)
+const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null
+const uid = currentUser.id;
+const form = ref<English>({
+    userId : uid,
+    content: '',
+    coreKey: '',
+    translation: '',
+    comment: '',
+    createDate: '',
+    updateDate: '',
+    isDeleted: '',
+    status: 'draft',
+    isTaboo: 0,
+    textCnt: 0,
+});
+const openEditDialog = (row: any) => {
+      isEditMode.value = true;
+      form.value = { ...row };
+      form.value.updateDate = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      dialogVisible.value = true;
+};
+    const submitEnglish = async () => {
+      try {
+        if (isEditMode.value) {
+            console.log(form.value);
+          await englishApi.updateEnglish(form.value);
+          ElMessage.success('修改成功');
+        } else {
+            // console.log(form.value);
+          await englishApi.addEnglish(form.value);
+          ElMessage.success('新增成功');
+        }
+        dialogVisible.value = false;
+        fetchEnglishList();
+      } catch (err) {
+        console.error(err);
+        ElMessage.error('操作失败');
+      }
+    };
 const filteredListLength = computed(() => filteredList.value.length)
 // 新增：关键词筛选相关
 const coreKeyFilter = ref('all');
