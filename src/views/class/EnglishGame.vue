@@ -211,7 +211,7 @@ const updateIsTaboo = async (currentWord: English) => {
     currentWord.updateDate = dayjs().format('YYYY-MM-DD HH:mm:ss');
     await englishApi.updateEnglish(currentWord);
     ElMessage.success('操作成功');
-    fetchEnglishList();
+    // fetchEnglishList();
   } catch (err) {
     console.error(err);
     ElMessage.error('操作失败');
@@ -219,6 +219,8 @@ const updateIsTaboo = async (currentWord: English) => {
 }
 const fetchEnglishList = async () => {
   try {
+    vis.clear();
+    currentIndex.value = 0;
     const res = await englishApi.getAllEnglish();
     let v = dayjs().format('YYYY-MM-DD HH:mm:ss');
     for(let item of res.data) {
@@ -249,18 +251,26 @@ const fetchEnglishList = async () => {
 };
 
 const getRandomWord = () => {
+  console.log(currentIndex.value, 888);
 //   let candidates = englishList.value.filter(w => w.content.length > 2);
 //   if (coreKeyFilter.value !== 'all') {
 //     candidates = candidates.filter(w => w.coreKey === coreKeyFilter.value);
 //   }
   if (!filteredListLength.value) return null;
   let res = filteredList.value[currentIndex.value];
+  console.log(currentIndex.value, filteredListLength.value - 1);
   while(vis.has(res)) {
-    currentIndex.value = (currentIndex.value + 1) % filteredListLength.value;
+    if(currentIndex.value == filteredListLength.value - 1) {
+      currentIndex.value = 0;
+      vis.clear();
+      break;
+    } else {
+      currentIndex.value = (currentIndex.value + 1) % filteredListLength.value;
+    }
     res = filteredList.value[currentIndex.value];
   }
-  vis.add(res);
-  console.log(res);
+  // vis.add(res);
+  // console.log(res);
 //   currentIndex.value = (currentIndex.value + 1) % filteredListLength.value;
   return res;
 //   return candidates[Math.floor(Math.random() * candidates.length)];
@@ -276,7 +286,6 @@ const shuffle = (word: string) => {
 };
 
 const startGame = () => {
-  currentIndex.value = 0;
   const word = getRandomWord();
   if (!word) {
     currentWord.value = null;
@@ -316,6 +325,7 @@ const checkAnswer = () => {
     ElMessage.success('🎉 答对了！');
     streak.value++;
     console.log(currentWord.value, 222222);
+    vis.add(currentWord.value);
     currentWord.value.textCnt += 1;
     try {
         currentWord.value.updateDate = dayjs().format('YYYY-MM-DD HH:mm:ss');
