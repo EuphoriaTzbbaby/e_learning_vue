@@ -269,6 +269,7 @@ const getRandomWord = () => {
     }
     res = filteredList.value[currentIndex.value];
   }
+  // 666
   // vis.add(res);
   // console.log(res);
 //   currentIndex.value = (currentIndex.value + 1) % filteredListLength.value;
