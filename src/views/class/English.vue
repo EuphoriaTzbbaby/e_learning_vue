@@ -111,6 +111,7 @@ export default defineComponent({
         isTaboo: number;
         textCnt: number;
       }
+    const defaultCoreKey = ref('单词')
     const form = ref<English>({
         userId : null,
         content: '',
@@ -183,13 +184,12 @@ export default defineComponent({
     const handlePageChange = (page: number) => {
       currentPage.value = page;
     };
-
     const openAddDialog = () => {
       isEditMode.value = false;
       form.value = {
         userId : userId,
         content: '',
-        coreKey: '单词',
+        coreKey: defaultCoreKey.value,
         translation: '',
         comment: '无',
         createDate: dayjs().format('YYYY-MM-DD HH:mm:ss'),
@@ -217,6 +217,7 @@ export default defineComponent({
           ElMessage.success('修改成功');
         } else {
             // console.log(form.value);
+          defaultCoreKey.value = form.value.coreKey;
           await englishApi.addEnglish(form.value);
           ElMessage.success('新增成功');
         }
