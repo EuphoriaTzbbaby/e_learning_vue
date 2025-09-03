@@ -138,6 +138,19 @@ interface English {
   isTaboo: number;
   textCnt: number;
 }
+interface ReviewState {
+  id: number;
+  userId: number;
+  interval_days: number;
+  strength: number;
+  difficulty: number;
+  forgetting_idx: number;
+  repetitions : number;
+  last_review: string;
+  next_review: string;
+  createDate: string;
+  updateDate: string;
+}
 const vis = new Set();
 const cww = 299521;
 const englishList = ref<English[]>([]);
@@ -168,6 +181,19 @@ const form = ref<English>({
     isTaboo: 0,
     textCnt: 0,
 });
+const reviewState = ref<ReviewState>({
+  id: 0,
+  userId: uid,
+  interval_days: 0,
+  strength: 0,
+  difficulty: 0,
+  forgetting_idx: 0,
+  repetitions : 0,
+  last_review: '',
+  next_review: '',
+  createDate: '',
+  updateDate: '',
+});
 const openEditDialog = (row: any) => {
       isEditMode.value = true;
       form.value = { ...row };
@@ -183,6 +209,19 @@ const openEditDialog = (row: any) => {
         } else {
             // console.log(form.value);
           await englishApi.addEnglish(form.value);
+          reviewState.value.userId = uid;
+          reviewState.value.interval_days = 0;
+          reviewState.value.strength = 0;
+          reviewState.value.difficulty = form.value.content.length / 10 * 0.1;
+          reviewState.value.difficulty = Math.min(1.0, reviewState.value.difficulty);
+          reviewState.value.forgetting_idx = 0;
+          reviewState.value.repetitions = 0;
+          let v = dayjs().format('YYYY-MM-DD HH:mm:ss');
+          reviewState.value.last_review = v;
+          reviewState.value.next_review = v;
+          reviewState.value.createDate = v;
+          reviewState.value.updateDate = v;
+          await reviewApi.addReview(reviewState.value);
           ElMessage.success('新增成功');
         }
         dialogVisible.value = false;

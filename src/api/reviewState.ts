@@ -7,22 +7,22 @@ import { get, post, put, del } from '../utils/axios'; // 引入自定义的 axio
 */
 const reviewApi = {
     // 获取用户所有复习状态
-    getAllReviews: (userId: number) => get(`/reviewState/user/${userId}`),
+    getAllReviews: (userId: number) => get(`/reviewState/read/user/${userId}`),
 
     // 获取某条复习状态
-    getReviewById: (id: number) => get(`/reviewState/${id}`),
+    getReviewById: (id: number) => get(`/reviewState/read/${id}`),
 
     // 获取用户到期复习列表
-    getDueReviews: (userId: number) => get(`/reviewState/due/${userId}`),
+    getDueReviews: (userId: number) => get(`/reviewState/read/due/${userId}`),
 
     // 创建新的复习状态
-    addReview: (data: object) => post('/reviewState', data),
+    addReview: (data: object) => post('/reviewState/add', data),
 
     // 更新复习状态（普通更新）
-    updateReview: (data: object) => put('/reviewState', data),
+    updateReview: (data: object) => put('/reviewState/update', data),
 
     // 删除复习状态
-    deleteReview: (id: number) => del(`/reviewState/${id}`),
+    deleteReview: (id: number) => del(`/reviewState/delete${id}`),
 
     // 根据 SM-5 打分更新复习计划（score: 0-5）
     updateReviewByScore: (id: number, score: number) => put('/reviewState/score', { id, score })

@@ -93,37 +93,68 @@ import { defineComponent, ref, onMounted, computed} from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import dayjs from 'dayjs';
 import englishApi from '../../api/english';
+import reviewApi from '../../api/reviewState';
 const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null
 const userId = currentUser.id;
 export default defineComponent({
   name: 'EnglishPage',
   setup() {
     interface English {
-        userId: number | null;
-        content: string;
-        coreKey: string;
-        translation: string;
-        comment: string;
-        createDate: string;
-        updateDate: string;
-        isDeleted: string;
-        status: string;
-        isTaboo: number;
-        textCnt: number;
-      }
+      egId : number;
+      userId: number | null;
+      content: string;
+      coreKey: string;
+      translation: string;
+      comment: string;
+      createDate: string;
+      updateDate: string;
+      isDeleted: string;
+      status: string;
+      isTaboo: number;
+      textCnt: number;
+    }
+    interface ReviewState {
+      id: number;
+      userId: number;
+      egId : number;
+      interval_days: number;
+      strength: number;
+      difficulty: number;
+      forgetting_idx: number;
+      repetitions : number;
+      lastReview: string;
+      nextReview: string;
+      createDate: string;
+      updateDate: string;
+    }
+    const reviewState = ref<ReviewState>({
+      id: 0,
+      userId: userId,
+      egId : 0,
+      interval_days: 0,
+      strength: 0,
+      difficulty: 0,
+      forgetting_idx: 0,
+      repetitions : 0,
+      lastReview: '',
+      nextReview: '',
+      createDate: '',
+      updateDate: '',
+    });
     const defaultCoreKey = ref('单词')
     const form = ref<English>({
-        userId : null,
-        content: '',
-        coreKey: '',
-        translation: '',
-        comment: '',
-        createDate: '',
-        updateDate: '',
-        isDeleted: '',
-        status: 'draft',
-        isTaboo: 0,
-        textCnt: 0,
+      egId : 0,
+      userId : userId,
+      content: '',
+      coreKey: '',
+      translation: '',
+      comment: '',
+      createDate: '',
+      updateDate: '',
+      isDeleted: '',
+      status: 'draft',
+      isTaboo: 0,
+      textCnt: 0,
     });
     const englishList = ref<English[]>([]);
     const keyList = ref([])
@@ -131,9 +162,10 @@ export default defineComponent({
     const currentPage = ref(1);
     const pageSize = 10;
     const searchVal = ref('');
-
+    const tot = ref('');
     const dialogVisible = ref(false);
     const isEditMode = ref(false);
+    const last = ref<English>()
     const searchEnglish = async () => {
       try {
         const res = await englishApi.getEnglishBySelectVal(searchVal.value);
@@ -167,8 +199,10 @@ export default defineComponent({
     const fetchEnglishList = async () => {
       try {
         const res = await englishApi.getAllEnglish();
+        tot.value = res.data.length;
+        last.value = res.data[res.data.length - 1];
         englishList.value = res.data.filter((item: any) => item.userId == userId && item.isDeleted == 0);
-        console.log(englishList.value, 111111111);
+        console.log(englishList.value, 111111111, last.value);
         keyList.value = Array.from(new Set(res.data.map((item: any) => item.coreKey)));
 
       } catch (err) {
@@ -187,6 +221,7 @@ export default defineComponent({
     const openAddDialog = () => {
       isEditMode.value = false;
       form.value = {
+        egId : 0,
         userId : userId,
         content: '',
         coreKey: defaultCoreKey.value,
@@ -219,7 +254,27 @@ export default defineComponent({
             // console.log(form.value);
           defaultCoreKey.value = form.value.coreKey;
           await englishApi.addEnglish(form.value);
-          ElMessage.success('新增成功');
+          ElMessage.success('单词新增成功');
+
+          // 新增成功后再生成 reviewState
+          reviewState.value.egId = last.value?.egId ? last.value.egId + 1 : 1;
+          reviewState.value.interval_days = 0;
+          reviewState.value.strength = 0;
+          reviewState.value.difficulty = form.value.content.length / 10 * 0.1;
+          reviewState.value.difficulty = Math.min(1.0, reviewState.value.difficulty);
+          reviewState.value.forgetting_idx = 0;
+          reviewState.value.repetitions = 0;
+
+          const v = dayjs().format('YYYY-MM-DD HH:mm:ss');
+          reviewState.value.lastReview = v;
+          reviewState.value.nextReview = v;
+          reviewState.value.createDate = v;
+          reviewState.value.updateDate = v;
+          console.log(reviewState.value,99999999)
+          // 再新增复习状态
+          await reviewApi.addReview(reviewState.value);
+          ElMessage.success('复习状态新增成功');
+
         }
         dialogVisible.value = false;
         fetchEnglishList();
