@@ -124,6 +124,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import englishApi from '../../api/english';
 import dayjs from 'dayjs';
+import reviewApi from '../../api/reviewState';
 interface English {
   userId: number;
   content: string;
@@ -368,6 +369,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
 };
 
 onMounted(() => {
+  console.log(reviewApi.getAllReviews(userId));
   fetchEnglishList();
   window.addEventListener('keydown', handleKeyDown);
 });
