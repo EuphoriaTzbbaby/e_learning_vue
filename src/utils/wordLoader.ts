@@ -13,7 +13,7 @@ export interface WordItem {
 export async function loadGraduateWords(): Promise<WordItem[]> {
   try {
     // 使用根路径访问 public 目录下的文件
-    const response = await fetch('/考研-乱序.txt');
+    const response = await fetch('/words.txt');
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -78,27 +78,16 @@ function getDefaultWords(): WordItem[] {
 /**
  * 根据难度过滤单词
  * @param {WordItem[]} words 单词数组
- * @param {string} difficulty 难度级别
+ * @param {string} difficulty 难度级别（字符串形式的数字，如"3"、"4"等）
  * @returns {string[]} 过滤后的单词数组（小写）
  */
 export function filterWordsByDifficulty(words: WordItem[], difficulty: string): string[] {
-  let wordLength: number;
-  switch (difficulty) {
-    case 'easy':
-      wordLength = 4;
-      break;
-    case 'medium':
-      wordLength = 5;
-      break;
-    case 'hard':
-      wordLength = 6;
-      break;
-    default:
-      wordLength = 5;
-  }
+  const wordLength = parseInt(difficulty);
+  
   const filteredWords = words
     .filter(item => item.word.length === wordLength)
     .map(item => item.word); // 保持小写
+  
   console.log(`难度 ${difficulty} (${wordLength}字母) 过滤后有 ${filteredWords.length} 个单词`);
   return filteredWords;
 }

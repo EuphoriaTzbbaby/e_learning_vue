@@ -16,6 +16,7 @@
           </el-tag>
         </div>
       </div>
+      
       <!-- 游戏控制区 -->
       <div class="game-controls">
         <el-button-group>
@@ -30,11 +31,17 @@
           </el-button>
         </el-button-group>
         <el-select v-model="difficulty" placeholder="选择难度" @change="changeDifficulty">
-          <el-option label="简单 (4字母)" value="easy" />
-          <el-option label="中等 (5字母)" value="medium" />
-          <el-option label="困难 (6字母)" value="hard" />
+          <el-option label="3字母" value="3" />
+          <el-option label="4字母" value="4" />
+          <el-option label="5字母" value="5" />
+          <el-option label="6字母" value="6" />
+          <el-option label="7字母" value="7" />
+          <el-option label="8字母" value="8" />
+          <el-option label="9字母" value="9" />
+          <el-option label="10字母" value="10" />
         </el-select>
       </div>
+      
       <!-- 游戏网格 -->
       <div class="game-grid" :class="{ 'dark-mode': isDarkMode }">
         <div v-for="(row, rowIndex) in gameGrid" :key="rowIndex" class="grid-row">
@@ -55,6 +62,7 @@
           </div>
         </div>
       </div>
+      
       <!-- 虚拟键盘 -->
       <div class="keyboard" :class="{ 'dark-mode': isDarkMode }">
         <div v-for="(row, rowIndex) in keyboardLayout" :key="rowIndex" class="keyboard-row">
@@ -74,6 +82,7 @@
           </button>
         </div>
       </div>
+      
       <!-- 游戏状态提示 -->
       <div v-if="gameStatus !== 'playing'" class="game-message">
         <el-alert
@@ -85,6 +94,7 @@
           :closable="false"
         />
       </div>
+      
       <!-- 单词释义 -->
       <div v-if="gameStatus !== 'playing'" class="word-meaning">
         <el-card>
@@ -97,6 +107,7 @@
           <p>{{ currentWordMeaning }}</p>
         </el-card>
       </div>
+      
       <!-- 游戏统计弹窗 -->
       <el-dialog v-model="showStats" title="游戏统计" width="500px">
         <div class="stats-container">
@@ -131,6 +142,7 @@
           </div>
         </div>
       </el-dialog>
+      
       <!-- 设置按钮 -->
       <div class="settings-btn">
         <el-button circle @click="showStats = true" :icon="DataLine" />
@@ -139,11 +151,13 @@
     </el-card>
   </div>
 </template>
+
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { RefreshRight, DataLine, Setting } from '@element-plus/icons-vue';
 import { loadGraduateWords, filterWordsByDifficulty } from '../../utils/wordLoader.ts';
+
 export default defineComponent({
   name: 'WordleGame',
   components: {
@@ -161,40 +175,46 @@ export default defineComponent({
     const gameGrid = ref<Array<Array<{ letter: string; status: string }>>>([]);
     const shakeRow = ref(-1);
     const isDarkMode = ref(false);
-    const difficulty = ref('medium');
+    const difficulty = ref('5'); // 默认5字母
     const hintsRemaining = ref(2);
     const showStats = ref(false);
     const showSettings = ref(false);
+    
     // 键盘布局 - 全部小写
     const keyboardLayout = [
       ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
       ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
       ['enter', 'z', 'x', 'c', 'v', 'b', 'n', 'm', 'back']
     ];
+    
     // 键盘状态 - 使用小写字母作为键
     const keyStatus = ref<Record<string, string>>({});
+    
     // 游戏统计
     const gamesPlayed = ref(0);
     const gamesWon = ref(0);
     const currentStreak = ref(0);
     const maxStreak = ref(0);
     const guessDistribution = ref([0, 0, 0, 0, 0, 0]);
+    
     // 单词列表
     const allWords = ref<Array<{word: string, meaning: string}>>([]);
     const filteredWords = ref<string[]>([]); // 存储小写
+    
     // 计算属性
     const winRate = computed(() => {
       return gamesPlayed.value ? Math.round((gamesWon.value / gamesPlayed.value) * 100) : 0;
     });
     const streak = computed(() => currentStreak.value);
     const difficultyLevel = computed(() => {
-      switch (difficulty.value) {
-        case 'easy': return '简单';
-        case 'medium': return '中等';
-        case 'hard': return '困难';
-        default: return '中等';
-      }
+      return `${difficulty.value}字母`;
     });
+    
+    // 获取当前列数
+    const getCurrentCols = () => {
+      return parseInt(difficulty.value);
+    };
+    
     // 获取单词列表
     const fetchEnglishList = async () => {
       try {
@@ -212,16 +232,18 @@ export default defineComponent({
         ElMessage.error('获取单词列表失败');
       }
     };
+    
     // 根据难度更新单词列表
     const updateFilteredWords = () => {
-      filteredWords.value = filterWordsByDifficulty(allWords.value, difficulty.value);
-      console.log(`当前难度 ${difficulty.value} 下有 ${filteredWords.value.length} 个单词`);
+      const wordLength = getCurrentCols();
+      filteredWords.value = filterWordsByDifficulty(allWords.value, wordLength.toString());
+      console.log(`当前难度 ${difficulty.value} 字母下有 ${filteredWords.value.length} 个单词`);
     };
+    
     // 初始化游戏网格
     const initGameGrid = () => {
       const rows = 6;
-      const cols = difficulty.value === 'easy' ? 4 : 
-                  difficulty.value === 'medium' ? 5 : 6;
+      const cols = getCurrentCols();
       gameGrid.value = Array(rows).fill(null).map(() => 
         Array(cols).fill(null).map(() => ({
           letter: '', // 存储小写
@@ -229,18 +251,22 @@ export default defineComponent({
         }))
       );
     };
+    
     // 开始新游戏
     const startNewGame = () => {
       if (filteredWords.value.length === 0) {
-        ElMessage.warning('没有符合条件的单词，请检查单词列表');
+        ElMessage.warning(`没有符合条件的${difficulty.value}字母单词，请选择其他难度`);
         return;
       }
+      
       // 随机选择目标单词
       const randomIndex = Math.floor(Math.random() * filteredWords.value.length);
       targetWord.value = filteredWords.value[randomIndex]; // 存储小写
+      
       // 获取单词释义
       const wordObj = allWords.value.find(item => item.word === targetWord.value);
       currentWordMeaning.value = wordObj ? wordObj.meaning : '暂无释义';
+      
       // 重置游戏状态
       gameStatus.value = 'playing';
       currentRow.value = 0;
@@ -248,15 +274,17 @@ export default defineComponent({
       shakeRow.value = -1;
       hintsRemaining.value = 2;
       keyStatus.value = {};
+      
       // 初始化网格
       initGameGrid();
       console.log('目标单词:', targetWord.value); // 调试用，实际应删除
     };
+    
     // 处理键盘点击
     const handleKeyClick = (key: string) => {
       if (gameStatus.value !== 'playing') return;
-      const cols = difficulty.value === 'easy' ? 4 : 
-                  difficulty.value === 'medium' ? 5 : 6;
+      const cols = getCurrentCols();
+      
       if (key === 'back') {
         // 删除字母
         if (currentCol.value > 0) {
@@ -274,10 +302,11 @@ export default defineComponent({
         }
       }
     };
+    
     // 提交猜测
     const submitGuess = async () => {
-      const cols = difficulty.value === 'easy' ? 4 : 
-                  difficulty.value === 'medium' ? 5 : 6;
+      const cols = getCurrentCols();
+      
       // 检查是否填满当前行
       if (currentCol.value !== cols) {
         shakeRow.value = currentRow.value;
@@ -285,10 +314,12 @@ export default defineComponent({
         ElMessage.warning('请填满所有格子');
         return;
       }
+      
       // 获取当前猜测的单词（小写）
       const guess = gameGrid.value[currentRow.value]
         .map(cell => cell.letter)
         .join('');
+      
       // 检查单词是否在列表中
       if (!filteredWords.value.includes(guess)) {
         shakeRow.value = currentRow.value;
@@ -296,10 +327,12 @@ export default defineComponent({
         ElMessage.error('不是有效单词');
         return;
       }
+      
       // 检查字母状态
       const targetLetters = targetWord.value.split('');
       const guessLetters = guess.split('');
       const letterStatus: Record<string, string> = {};
+      
       // 第一遍：标记正确位置的字母
       for (let i = 0; i < cols; i++) {
         if (guessLetters[i] === targetLetters[i]) {
@@ -308,6 +341,7 @@ export default defineComponent({
           targetLetters[i] = ''; // 标记为已处理
         }
       }
+      
       // 第二遍：标记存在但位置错误的字母
       for (let i = 0; i < cols; i++) {
         if (gameGrid.value[currentRow.value][i].status !== 'correct') {
@@ -324,6 +358,7 @@ export default defineComponent({
           }
         }
       }
+      
       // 更新键盘状态
       Object.keys(letterStatus).forEach(key => {
         if (!keyStatus.value[key] || 
@@ -332,6 +367,7 @@ export default defineComponent({
           keyStatus.value[key] = letterStatus[key];
         }
       });
+      
       // 检查游戏状态
       if (guess === targetWord.value) {
         gameStatus.value = 'won';
@@ -351,40 +387,72 @@ export default defineComponent({
         currentRow.value++;
         currentCol.value = 0;
       }
+      
       // 更新游戏统计
       gamesPlayed.value++;
       saveGameStats();
     };
+    
     // 显示提示
     const showHint = () => {
       if (hintsRemaining.value <= 0) return;
-      hintsRemaining.value--;
       // 找到一个未揭示的位置
-      const cols = difficulty.value === 'easy' ? 4 : 
-                  difficulty.value === 'medium' ? 5 : 6;
+      const cols = getCurrentCols();
       const unrevealedPositions = [];
+      let filledPositions = 0; // 已填写的位置计数
+      // 检查每一列是否在之前行中已经是correct状态
       for (let i = 0; i < cols; i++) {
-        if (!gameGrid.value[currentRow.value][i].letter) {
+        // 如果当前位置已经有字母，增加已填写计数
+        if (gameGrid.value[currentRow.value][i].letter) {
+          filledPositions++;
+          continue;
+        }
+        // 检查该列在之前行中是否已经是correct状态
+        let isColumnCorrect = false;
+        for (let row = 0; row < currentRow.value; row++) {
+          if (gameGrid.value[row][i].status === 'correct') {
+            isColumnCorrect = true;
+            filledPositions++; // 正确的列也算作已填写
+            break;
+          }
+        }
+        // 如果该列在之前行中不是correct状态，则加入可提示位置列表
+        if (!isColumnCorrect) {
           unrevealedPositions.push(i);
         }
       }
-      if (unrevealedPositions.length > 0) {
-        const randomPos = unrevealedPositions[Math.floor(Math.random() * unrevealedPositions.length)];
-        gameGrid.value[currentRow.value][randomPos].letter = targetWord.value[randomPos]; // 存储小写
-        currentCol.value = randomPos + 1;
-        ElMessage.info(`提示: 第${randomPos + 1}个字母是 ${targetWord.value[randomPos]}`);
+      // 计算未填写的位置数
+      const unfilledCount = cols - filledPositions;
+      // 如果只剩下一列未猜出来，不给提示
+      if (unfilledCount === 1) {
+        ElMessage.warning('只剩一个字母了，自己猜猜看吧！');
+        return;
       }
+      // 如果没有可提示的位置，显示提示信息
+      if (unrevealedPositions.length === 0) {
+        ElMessage.warning('没有可提示的字母，所有未知列都已提示或已猜对');
+        return;
+      }
+      // 有可提示的位置，执行提示逻辑
+      hintsRemaining.value--;
+      const randomPos = unrevealedPositions[Math.floor(Math.random() * unrevealedPositions.length)];
+      gameGrid.value[currentRow.value][randomPos].letter = targetWord.value[randomPos]; // 存储小写
+      currentCol.value = randomPos + 1;
+      ElMessage.info(`提示: 第${randomPos + 1}个字母是 ${targetWord.value[randomPos]}`);
     };
+    
     // 切换主题
     const toggleTheme = () => {
       isDarkMode.value = !isDarkMode.value;
       document.documentElement.classList.toggle('dark', isDarkMode.value);
     };
+    
     // 更改难度
     const changeDifficulty = () => {
       updateFilteredWords();
       startNewGame();
     };
+    
     // 保存游戏统计
     const saveGameStats = () => {
       const stats = {
@@ -396,6 +464,7 @@ export default defineComponent({
       };
       localStorage.setItem('wordleStats', JSON.stringify(stats));
     };
+    
     // 加载游戏统计
     const loadGameStats = () => {
       const savedStats = localStorage.getItem('wordleStats');
@@ -408,25 +477,30 @@ export default defineComponent({
         guessDistribution.value = stats.guessDistribution || [0, 0, 0, 0, 0, 0];
       }
     };
+    
     // 处理物理键盘事件
     const handleKeyDown = (event: KeyboardEvent) => {
       if (gameStatus.value !== 'playing') return;
+      
       // 处理删除键
       if (event.key === 'Backspace') {
         handleKeyClick('back');
         return;
       }
+      
       // 处理回车键
       if (event.key === 'Enter') {
         handleKeyClick('enter');
         return;
       }
+      
       // 处理字母键（转换为小写）
       const key = event.key.toLowerCase();
       if (key >= 'a' && key <= 'z') {
         handleKeyClick(key);
       }
     };
+    
     // 生命周期钩子
     onMounted(async () => {
       await fetchEnglishList();
@@ -435,10 +509,12 @@ export default defineComponent({
       // 添加键盘事件监听
       window.addEventListener('keydown', handleKeyDown);
     });
+    
     // 清理事件监听
     onUnmounted(() => {
       window.removeEventListener('keydown', handleKeyDown);
     });
+    
     return {
       gameStatus,
       gameGrid,
@@ -474,6 +550,7 @@ export default defineComponent({
   }
 });
 </script>
+
 <style scoped>
 .wordle-game {
   max-width: 800px;
