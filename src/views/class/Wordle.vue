@@ -3,7 +3,7 @@
     <el-card class="game-card" :body-style="{ padding: '20px' }">
       <!-- 游戏头部 -->
       <div class="game-header">
-        <h2>单词猜猜乐</h2>
+        <h2>考研英语单词猜猜乐</h2>
         <div class="game-stats">
           <el-tag type="info" effect="dark">
             胜率: {{ winRate }}%
@@ -66,11 +66,11 @@
               'correct': keyStatus[key] === 'correct',
               'present': keyStatus[key] === 'present',
               'absent': keyStatus[key] === 'absent',
-              'wide': key === 'ENTER' || key === 'BACK'
+              'wide': key === 'enter' || key === 'back'
             }"
             @click="handleKeyClick(key)"
           >
-            {{ key === 'BACK' ? '⌫' : key }}
+            {{ key === 'back' ? '⌫' : (key === 'enter' ? 'enter' : key) }}
           </button>
         </div>
       </div>
@@ -84,6 +84,18 @@
           center
           :closable="false"
         />
+      </div>
+      <!-- 单词释义 -->
+      <div v-if="gameStatus !== 'playing'" class="word-meaning">
+        <el-card>
+          <template #header>
+            <div class="meaning-header">
+              <span>{{ targetWord }}</span>
+              <el-tag type="info">{{ difficultyLevel }}</el-tag>
+            </div>
+          </template>
+          <p>{{ currentWordMeaning }}</p>
+        </el-card>
       </div>
       <!-- 游戏统计弹窗 -->
       <el-dialog v-model="showStats" title="游戏统计" width="500px">
@@ -112,7 +124,7 @@
             <div class="guess-bar-container">
               <div 
                 class="guess-bar-fill" 
-                :style="{ width: `${(count / Math.max(...guessDistribution)) * 100}%` }"
+                :style="{ width: `${(count / Math.max(...guessDistribution, 1)) * 100}%` }"
               ></div>
             </div>
             <div class="guess-count">{{ count }}</div>
@@ -128,16 +140,10 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, onUnmounted} from 'vue';
-import { ElMessage} from 'element-plus';
+import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue';
+import { ElMessage } from 'element-plus';
 import { RefreshRight, DataLine, Setting } from '@element-plus/icons-vue';
-import dayjs from 'dayjs';
-import englishApi from '../../api/english';
-import reviewApi from '../../api/reviewState';
-import type { English } from '../../interface/english';
-// 获取用户信息
-const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null;
-const userId = currentUser.id;
+import { loadGraduateWords, filterWordsByDifficulty } from '../../utils/wordLoader.ts';
 export default defineComponent({
   name: 'WordleGame',
   components: {
@@ -148,7 +154,8 @@ export default defineComponent({
   setup() {
     // 游戏状态
     const gameStatus = ref<'playing' | 'won' | 'lost'>('playing');
-    const targetWord = ref('');
+    const targetWord = ref(''); // 存储小写
+    const currentWordMeaning = ref('');
     const currentRow = ref(0);
     const currentCol = ref(0);
     const gameGrid = ref<Array<Array<{ letter: string; status: string }>>>([]);
@@ -158,13 +165,13 @@ export default defineComponent({
     const hintsRemaining = ref(2);
     const showStats = ref(false);
     const showSettings = ref(false);
-    // 键盘布局
+    // 键盘布局 - 全部小写
     const keyboardLayout = [
-      ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-      ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-      ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'BACK']
+      ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+      ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+      ['enter', 'z', 'x', 'c', 'v', 'b', 'n', 'm', 'back']
     ];
-    // 键盘状态
+    // 键盘状态 - 使用小写字母作为键
     const keyStatus = ref<Record<string, string>>({});
     // 游戏统计
     const gamesPlayed = ref(0);
@@ -173,8 +180,8 @@ export default defineComponent({
     const maxStreak = ref(0);
     const guessDistribution = ref([0, 0, 0, 0, 0, 0]);
     // 单词列表
-    const englishList = ref<English[]>([]);
-    const filteredWords = ref<string[]>([]);
+    const allWords = ref<Array<{word: string, meaning: string}>>([]);
+    const filteredWords = ref<string[]>([]); // 存储小写
     // 计算属性
     const winRate = computed(() => {
       return gamesPlayed.value ? Math.round((gamesWon.value / gamesPlayed.value) * 100) : 0;
@@ -191,12 +198,15 @@ export default defineComponent({
     // 获取单词列表
     const fetchEnglishList = async () => {
       try {
-        const res = await englishApi.getAllEnglish();
-        englishList.value = res.data.filter((item: any) => 
-          item.userId == userId && item.isDeleted == 0
-        );
+        // 从本地txt文件加载单词
+        allWords.value = await loadGraduateWords();
+        if (allWords.value.length === 0) {
+          ElMessage.error('未能加载单词列表，请检查文件是否存在');
+          return;
+        }
         // 根据难度过滤单词
         updateFilteredWords();
+        ElMessage.success(`成功加载 ${allWords.value.length} 个考研单词`);
       } catch (err) {
         console.error(err);
         ElMessage.error('获取单词列表失败');
@@ -204,11 +214,8 @@ export default defineComponent({
     };
     // 根据难度更新单词列表
     const updateFilteredWords = () => {
-      const wordLength = difficulty.value === 'easy' ? 4 : 
-                        difficulty.value === 'medium' ? 5 : 6;
-      filteredWords.value = englishList.value
-        .map(item => item.content.trim().toUpperCase())
-        .filter(word => word.length === wordLength && /^[A-Z]+$/.test(word));
+      filteredWords.value = filterWordsByDifficulty(allWords.value, difficulty.value);
+      console.log(`当前难度 ${difficulty.value} 下有 ${filteredWords.value.length} 个单词`);
     };
     // 初始化游戏网格
     const initGameGrid = () => {
@@ -217,7 +224,7 @@ export default defineComponent({
                   difficulty.value === 'medium' ? 5 : 6;
       gameGrid.value = Array(rows).fill(null).map(() => 
         Array(cols).fill(null).map(() => ({
-          letter: '',
+          letter: '', // 存储小写
           status: ''
         }))
       );
@@ -230,7 +237,10 @@ export default defineComponent({
       }
       // 随机选择目标单词
       const randomIndex = Math.floor(Math.random() * filteredWords.value.length);
-      targetWord.value = filteredWords.value[randomIndex];
+      targetWord.value = filteredWords.value[randomIndex]; // 存储小写
+      // 获取单词释义
+      const wordObj = allWords.value.find(item => item.word === targetWord.value);
+      currentWordMeaning.value = wordObj ? wordObj.meaning : '暂无释义';
       // 重置游戏状态
       gameStatus.value = 'playing';
       currentRow.value = 0;
@@ -247,17 +257,17 @@ export default defineComponent({
       if (gameStatus.value !== 'playing') return;
       const cols = difficulty.value === 'easy' ? 4 : 
                   difficulty.value === 'medium' ? 5 : 6;
-      if (key === 'BACK') {
+      if (key === 'back') {
         // 删除字母
         if (currentCol.value > 0) {
           currentCol.value--;
           gameGrid.value[currentRow.value][currentCol.value].letter = '';
         }
-      } else if (key === 'ENTER') {
+      } else if (key === 'enter') {
         // 提交猜测
         submitGuess();
       } else {
-        // 添加字母
+        // 添加字母（小写）
         if (currentCol.value < cols) {
           gameGrid.value[currentRow.value][currentCol.value].letter = key;
           currentCol.value++;
@@ -275,7 +285,7 @@ export default defineComponent({
         ElMessage.warning('请填满所有格子');
         return;
       }
-      // 获取当前猜测的单词
+      // 获取当前猜测的单词（小写）
       const guess = gameGrid.value[currentRow.value]
         .map(cell => cell.letter)
         .join('');
@@ -294,7 +304,7 @@ export default defineComponent({
       for (let i = 0; i < cols; i++) {
         if (guessLetters[i] === targetLetters[i]) {
           gameGrid.value[currentRow.value][i].status = 'correct';
-          letterStatus[guessLetters[i]] = 'correct';
+          letterStatus[guessLetters[i]] = 'correct'; // 键盘状态使用小写
           targetLetters[i] = ''; // 标记为已处理
         }
       }
@@ -304,12 +314,12 @@ export default defineComponent({
           const index = targetLetters.indexOf(guessLetters[i]);
           if (index !== -1) {
             gameGrid.value[currentRow.value][i].status = 'present';
-            letterStatus[guessLetters[i]] = 'present';
+            letterStatus[guessLetters[i]] = 'present'; // 键盘状态使用小写
             targetLetters[index] = ''; // 标记为已处理
           } else {
             gameGrid.value[currentRow.value][i].status = 'absent';
             if (!letterStatus[guessLetters[i]]) {
-              letterStatus[guessLetters[i]] = 'absent';
+              letterStatus[guessLetters[i]] = 'absent'; // 键盘状态使用小写
             }
           }
         }
@@ -332,14 +342,10 @@ export default defineComponent({
         }
         guessDistribution.value[currentRow.value]++;
         ElMessage.success('恭喜你猜对了！');
-        // 更新复习状态
-        updateReviewState(true);
       } else if (currentRow.value === 5) {
         gameStatus.value = 'lost';
         currentStreak.value = 0;
         ElMessage.error(`游戏结束！答案是: ${targetWord.value}`);
-        // 更新复习状态
-        updateReviewState(false);
       } else {
         // 进入下一行
         currentRow.value++;
@@ -364,7 +370,7 @@ export default defineComponent({
       }
       if (unrevealedPositions.length > 0) {
         const randomPos = unrevealedPositions[Math.floor(Math.random() * unrevealedPositions.length)];
-        gameGrid.value[currentRow.value][randomPos].letter = targetWord.value[randomPos];
+        gameGrid.value[currentRow.value][randomPos].letter = targetWord.value[randomPos]; // 存储小写
         currentCol.value = randomPos + 1;
         ElMessage.info(`提示: 第${randomPos + 1}个字母是 ${targetWord.value[randomPos]}`);
       }
@@ -378,55 +384,6 @@ export default defineComponent({
     const changeDifficulty = () => {
       updateFilteredWords();
       startNewGame();
-    };
-    // 更新复习状态
-    const updateReviewState = async (isCorrect: boolean) => {
-      try {
-        // 查找当前单词对应的复习记录
-        const englishItem = englishList.value.find(
-          item => item.content.trim().toUpperCase() === targetWord.value
-        );
-        if (!englishItem) return;
-        // 获取复习状态
-        const reviewRes = await reviewApi.getReviewById(englishItem.egId);
-        let reviewState = reviewRes.data;
-        if (reviewState) {
-          // 更新现有复习状态
-          reviewState.repetitions = (reviewState.repetitions || 0) + 1;
-          reviewState.lastReview = dayjs().format('YYYY-MM-DD HH:mm:ss');
-          reviewState.updateDate = dayjs().format('YYYY-MM-DD HH:mm:ss');
-          // 根据答案正确性更新参数
-          if (isCorrect) {
-            reviewState.strength = Math.min(1.0, reviewState.strength + 0.2);
-            reviewState.interval_days = Math.min(30, reviewState.interval_days * 2);
-          } else {
-            reviewState.strength = Math.max(0.1, reviewState.strength - 0.1);
-            reviewState.interval_days = Math.max(1, Math.floor(reviewState.interval_days / 2));
-          }
-          // 计算下次复习时间
-          const nextReviewDate = dayjs().add(reviewState.interval_days, 'day');
-          reviewState.nextReview = nextReviewDate.format('YYYY-MM-DD HH:mm:ss');
-          await reviewApi.updateReview(reviewState);
-        } else {
-          // 创建新的复习状态
-          const newReviewState = {
-            userId: userId,
-            egId: englishItem.egId,
-            interval_days: isCorrect ? 1 : 0,
-            strength: isCorrect ? 0.5 : 0.2,
-            difficulty: 0.5,
-            forgetting_idx: 0,
-            repetitions: 1,
-            lastReview: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-            nextReview: dayjs().add(isCorrect ? 1 : 0, 'day').format('YYYY-MM-DD HH:mm:ss'),
-            createDate: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-            updateDate: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-          };
-          await reviewApi.addReview(newReviewState);
-        }
-      } catch (err) {
-        console.error('更新复习状态失败:', err);
-      }
     };
     // 保存游戏统计
     const saveGameStats = () => {
@@ -454,13 +411,20 @@ export default defineComponent({
     // 处理物理键盘事件
     const handleKeyDown = (event: KeyboardEvent) => {
       if (gameStatus.value !== 'playing') return;
-      const key = event.key.toUpperCase();
-      if (key >= 'A' && key <= 'Z') {
+      // 处理删除键
+      if (event.key === 'Backspace') {
+        handleKeyClick('back');
+        return;
+      }
+      // 处理回车键
+      if (event.key === 'Enter') {
+        handleKeyClick('enter');
+        return;
+      }
+      // 处理字母键（转换为小写）
+      const key = event.key.toLowerCase();
+      if (key >= 'a' && key <= 'z') {
         handleKeyClick(key);
-      } else if (key === 'BACKSPACE') {
-        handleKeyClick('BACK');
-      } else if (key === 'ENTER') {
-        handleKeyClick('ENTER');
       }
     };
     // 生命周期钩子
@@ -485,6 +449,7 @@ export default defineComponent({
       difficulty,
       hintsRemaining,
       targetWord,
+      currentWordMeaning,
       showStats,
       showSettings,
       keyboardLayout,
@@ -561,7 +526,6 @@ export default defineComponent({
   justify-content: center;
   font-size: 24px;
   font-weight: bold;
-  text-transform: uppercase;
   transition: all 0.3s ease;
   border-radius: 4px;
 }
@@ -653,6 +617,14 @@ export default defineComponent({
 }
 .game-message {
   margin-top: 20px;
+}
+.word-meaning {
+  margin-top: 20px;
+}
+.meaning-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .settings-btn {
   position: fixed;
