@@ -94,79 +94,27 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import dayjs from 'dayjs';
 import englishApi from '../../api/english';
 import reviewApi from '../../api/reviewState';
+import type { English } from '../../interface/english';
+import type { ReviewState } from '../../interface/reviewState';
+// 获取用户信息(存储在浏览器里了)
 const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null
 const userId = currentUser.id;
 export default defineComponent({
   name: 'EnglishPage',
   setup() {
-    interface English {
-      egId : number;
-      userId: number | null;
-      content: string;
-      coreKey: string;
-      translation: string;
-      comment: string;
-      createDate: string;
-      updateDate: string;
-      isDeleted: string;
-      status: string;
-      isTaboo: number;
-      textCnt: number;
-    }
-    interface ReviewState {
-      id: number;
-      userId: number;
-      egId : number;
-      interval_days: number;
-      strength: number;
-      difficulty: number;
-      forgetting_idx: number;
-      repetitions : number;
-      lastReview: string;
-      nextReview: string;
-      createDate: string;
-      updateDate: string;
-    }
-    const reviewState = ref<ReviewState>({
-      id: 0,
-      userId: userId,
-      egId : 0,
-      interval_days: 0,
-      strength: 0,
-      difficulty: 0,
-      forgetting_idx: 0,
-      repetitions : 0,
-      lastReview: '',
-      nextReview: '',
-      createDate: '',
-      updateDate: '',
-    });
-    const defaultCoreKey = ref('单词')
-    const form = ref<English>({
-      egId : 0,
-      userId : userId,
-      content: '',
-      coreKey: '',
-      translation: '',
-      comment: '',
-      createDate: '',
-      updateDate: '',
-      isDeleted: '',
-      status: 'draft',
-      isTaboo: 0,
-      textCnt: 0,
-    });
-    const englishList = ref<English[]>([]);
-    const keyList = ref([])
-    const sortKey = ref(0)
+    // 分页
     const currentPage = ref(1);
     const pageSize = 10;
+        const paginatedList = computed(() => {
+      const start = (currentPage.value - 1) * pageSize;
+      return englishList.value.slice(start, start + pageSize);
+    });
+    const handlePageChange = (page: number) => {
+      currentPage.value = page;
+    };
+    // 搜索
     const searchVal = ref('');
-    const tot = ref('');
-    const dialogVisible = ref(false);
-    const isEditMode = ref(false);
-    const last = ref<English>()
-    const searchEnglish = async () => {
+      const searchEnglish = async () => {
       try {
         const res = await englishApi.getEnglishBySelectVal(searchVal.value);
         englishList.value = res.data.filter((item: any) => item.userId == userId && item.isDeleted == 0);
@@ -175,8 +123,10 @@ export default defineComponent({
         console.error(err);
       }
     };
+    // 按照 coreKey排序
+    const keyList = ref([])
+    const sortKey = ref(0)
     const sortContent = () => {
-      console.log(sortKey.value, 88888)
       let i = 0, j = englishList.value.length - 1;
       while(i < j) {
         while(i < j && englishList.value[i].coreKey == keyList.value[sortKey.value]) i++;
@@ -192,32 +142,42 @@ export default defineComponent({
       englishList.value = [...substr, ...englishList.value.slice(i)];
       sortKey.value = (sortKey.value + 1) % keyList.value.length;
     }
+    // 重置
     const reset = () => {
       sortKey.value = 0;
       fetchEnglishList();
     }
+    // 获取所有english信息
+    const form = ref<English>({
+      egId : 0,
+      userId : userId,
+      content: '',
+      coreKey: '',
+      translation: '',
+      comment: '',
+      createDate: '',
+      updateDate: '',
+      isDeleted: '',
+      status: 'draft',
+      isTaboo: 0,
+      textCnt: 0,
+    });
+    const englishList = ref<English[]>([]);
+    const last = ref<English>() // 为了获取最后一个 egId，为了同时新增 reviewState
     const fetchEnglishList = async () => {
       try {
         const res = await englishApi.getAllEnglish();
-        tot.value = res.data.length;
         last.value = res.data[res.data.length - 1];
         englishList.value = res.data.filter((item: any) => item.userId == userId && item.isDeleted == 0);
-        console.log(englishList.value, 111111111, last.value);
         keyList.value = Array.from(new Set(res.data.map((item: any) => item.coreKey)));
 
       } catch (err) {
         console.error(err);
       }
     };
-
-    const paginatedList = computed(() => {
-      const start = (currentPage.value - 1) * pageSize;
-      return englishList.value.slice(start, start + pageSize);
-    });
-
-    const handlePageChange = (page: number) => {
-      currentPage.value = page;
-    };
+    // 隐藏弹窗(编辑 / 新增)
+    const dialogVisible = ref(false);
+    const isEditMode = ref(false);
     const openAddDialog = () => {
       isEditMode.value = false;
       form.value = {
@@ -236,33 +196,46 @@ export default defineComponent({
       };
       dialogVisible.value = true;
     };
-
     const openEditDialog = (row: any) => {
       isEditMode.value = true;
       form.value = { ...row };
       form.value.updateDate = dayjs().format('YYYY-MM-DD HH:mm:ss');
       dialogVisible.value = true;
     };
-
+    // 处理编辑/新增的提交
+    const reviewState = ref<ReviewState>({
+      id: 0,
+      userId: userId,
+      egId : 0,
+      intervalDays: 0,
+      strength: 0,
+      difficulty: 0,
+      forgettingIdx: 0,
+      repetitions : 0,
+      lastReview: '',
+      nextReview: '',
+      createDate: '',
+      updateDate: '',
+    });
+    const defaultCoreKey = ref('单词') // 控制默认 corekey
     const submitEnglish = async () => {
       try {
         if (isEditMode.value) {
-            console.log(form.value);
           await englishApi.updateEnglish(form.value);
           ElMessage.success('修改成功');
         } else {
-            // console.log(form.value);
           defaultCoreKey.value = form.value.coreKey;
           await englishApi.addEnglish(form.value);
           ElMessage.success('单词新增成功');
 
           // 新增成功后再生成 reviewState
+          reviewState.value.userId = userId;
           reviewState.value.egId = last.value?.egId ? last.value.egId + 1 : 1;
-          reviewState.value.interval_days = 0;
+          reviewState.value.intervalDays = 0;
           reviewState.value.strength = 0;
           reviewState.value.difficulty = form.value.content.length / 10 * 0.1;
           reviewState.value.difficulty = Math.min(1.0, reviewState.value.difficulty);
-          reviewState.value.forgetting_idx = 0;
+          reviewState.value.forgettingIdx = 0;
           reviewState.value.repetitions = 0;
 
           const v = dayjs().format('YYYY-MM-DD HH:mm:ss');
@@ -283,7 +256,7 @@ export default defineComponent({
         ElMessage.error('操作失败');
       }
     };
-
+    // 删除(逻辑删除)，实际表中会记录这条信息的
     const deleteEnglish = async (row : any) => {
       try {
         await ElMessageBox.confirm('确定删除该记录？', '警告', {
@@ -306,16 +279,17 @@ export default defineComponent({
         }
       }
     };
+    // 按Enter键进行搜索
     const handleKeyDown = (event: KeyboardEvent) => {
       if(event.key == 'Enter') {
         searchEnglish();
       }
     };
+    // 源头，就那么多
     onMounted(() => {
       fetchEnglishList();
       window.addEventListener('keydown', handleKeyDown);
     });
-    console.log(userId, currentUser);
     return {
       englishList,
       currentPage,

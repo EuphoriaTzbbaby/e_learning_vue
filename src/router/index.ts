@@ -22,6 +22,8 @@ import NoteComments from '../views/xhs/noteComments.vue'
 import Emotion from '../views/xhs/emotion.vue'
 import IpLocation from '../views/xhs/ipLocation.vue'
 import Gender from '../views/xhs/gender.vue'
+import EnglishGamePro from '../views/class/EnglishGamePro.vue'
+import Wordle from '../views/class/Wordle.vue'
 const routes = [
   { path: '/', redirect: 'login' },
   { path: '/login', component: Login },
@@ -135,6 +137,16 @@ const routes = [
         path: 'englishGame',
         name: 'englishGame',
         component: EnglishGame
+      },
+      {
+        path: 'englishGamePro',
+        name: 'englishGamePro',
+        component: EnglishGamePro
+      },
+      {
+        path: 'wordle',
+        name: 'wordle',
+        component: Wordle
       },
       {
         path: 'game',

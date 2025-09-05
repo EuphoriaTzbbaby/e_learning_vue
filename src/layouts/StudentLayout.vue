@@ -43,6 +43,18 @@
                         </el-icon>
                         <span>english game</span>
                     </el-menu-item>
+                    <el-menu-item index="/student/englishGamePro">
+                        <el-icon>
+                            <game />
+                        </el-icon>
+                        <span>english game Pro</span>
+                    </el-menu-item>
+                    <el-menu-item index="/student/wordle">
+                        <el-icon>
+                            <game />
+                        </el-icon>
+                        <span>wordle</span>
+                    </el-menu-item>
                     <el-menu-item index="/xhs">
                         <el-icon>
                             <xhs />

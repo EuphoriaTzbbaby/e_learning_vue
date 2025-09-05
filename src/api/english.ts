@@ -15,8 +15,12 @@ const englishApi = {
 
     // 根据 ID 获取记录
     getEnglishById: (id: number) => get(`/english/get/${id}`),
+    // 批量获取记录
+    getEnglishByIds: (ids: number[]) => post('/english/getByIds', { ids }),
     // 根据 selectVal 获取记录
-    getEnglishBySelectVal: (selectVal: string) => get(`/english/get/selectVal/${selectVal}`)
+    getEnglishBySelectVal: (selectVal: string) => get(`/english/get/selectVal/${selectVal}`),
+    // 批量更新记录
+    updateEnglishByIds: (data: object) => put('/english/updateByIds', data)
 };
 
 export default englishApi;

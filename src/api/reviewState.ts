@@ -22,7 +22,7 @@ const reviewApi = {
     updateReview: (data: object) => put('/reviewState/update', data),
 
     // 删除复习状态
-    deleteReview: (id: number) => del(`/reviewState/delete${id}`),
+    deleteReview: (id: number) => del(`/reviewState/delete/${id}`),
 
     // 根据 SM-5 打分更新复习计划（score: 0-5）
     updateReviewByScore: (id: number, score: number) => put('/reviewState/score', { id, score })

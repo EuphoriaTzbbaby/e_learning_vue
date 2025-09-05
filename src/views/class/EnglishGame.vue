@@ -30,11 +30,6 @@
           <el-radio label="input">键盘输入</el-radio>
         </el-radio-group>
       </el-form-item>
-
-      <!-- <el-button type="primary" @click="fetchEnglishList" style="margin-bottom: 15px">
-        刷新词库
-      </el-button> -->
-          <!-- 弹窗 -->
     <el-dialog v-model="dialogVisible" :title="isEditMode ? '编辑内容' : '新增内容'" width="600px">
       <el-form :model="form" label-width="100px">
         <el-form-item label="英文内容">
@@ -125,125 +120,40 @@ import { ElMessage } from 'element-plus';
 import englishApi from '../../api/english';
 import dayjs from 'dayjs';
 import reviewApi from '../../api/reviewState';
-interface English {
-  userId: number;
-  content: string;
-  coreKey: string;
-  translation: string;
-  comment: string;
-  createDate: string;
-  updateDate: string;
-  isDeleted: string;
-  status: string;
-  isTaboo: number;
-  textCnt: number;
-}
-interface ReviewState {
-  id: number;
-  userId: number;
-  interval_days: number;
-  strength: number;
-  difficulty: number;
-  forgetting_idx: number;
-  repetitions : number;
-  last_review: string;
-  next_review: string;
-  createDate: string;
-  updateDate: string;
-}
-const vis = new Set();
-const cww = 299521;
-const englishList = ref<English[]>([]);
-const filteredList = ref<English[]>([])
-const currentWord = ref<English | null>(null);
-const shuffledLetters = ref<string[]>([]);
-const usedIndices = ref<number[]>([]);
-const streak = ref(0);
-const mode = ref<'select' | 'input'>('select');
-const typedAnswer = ref('');
-const showHint = ref(false);
-let hintTimeout: number | null = null;
-const currentIndex = ref(0)
-const isEditMode = ref(false)
-const dialogVisible = ref(false)
+import type {English} from '../../interface/english';
+// 获取用户信息(存储在浏览器里了)
 const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null
 const uid = currentUser.id;
-const form = ref<English>({
-    userId : uid,
-    content: '',
-    coreKey: '',
-    translation: '',
-    comment: '',
-    createDate: '',
-    updateDate: '',
-    isDeleted: '',
-    status: 'draft',
-    isTaboo: 0,
-    textCnt: 0,
-});
-const reviewState = ref<ReviewState>({
-  id: 0,
-  userId: uid,
-  interval_days: 0,
-  strength: 0,
-  difficulty: 0,
-  forgetting_idx: 0,
-  repetitions : 0,
-  last_review: '',
-  next_review: '',
-  createDate: '',
-  updateDate: '',
-});
+const userId = JSON.parse(localStorage.getItem('user') || '{}')?.id || null;
+const mode = ref<'select' | 'input'>('select');
+// 编辑弹窗(实际只有修改了)
+const isEditMode = ref(false)
+const dialogVisible = ref(false)
 const openEditDialog = (row: any) => {
       isEditMode.value = true;
       form.value = { ...row };
       form.value.updateDate = dayjs().format('YYYY-MM-DD HH:mm:ss');
       dialogVisible.value = true;
 };
-    const submitEnglish = async () => {
-      try {
-        if (isEditMode.value) {
-            console.log(form.value);
-          await englishApi.updateEnglish(form.value);
-          ElMessage.success('修改成功');
-        } else {
-            // console.log(form.value);
-          await englishApi.addEnglish(form.value);
-          reviewState.value.userId = uid;
-          reviewState.value.interval_days = 0;
-          reviewState.value.strength = 0;
-          reviewState.value.difficulty = form.value.content.length / 10 * 0.1;
-          reviewState.value.difficulty = Math.min(1.0, reviewState.value.difficulty);
-          reviewState.value.forgetting_idx = 0;
-          reviewState.value.repetitions = 0;
-          let v = dayjs().format('YYYY-MM-DD HH:mm:ss');
-          reviewState.value.last_review = v;
-          reviewState.value.next_review = v;
-          reviewState.value.createDate = v;
-          reviewState.value.updateDate = v;
-          await reviewApi.addReview(reviewState.value);
-          ElMessage.success('新增成功');
-        }
-        dialogVisible.value = false;
-        fetchEnglishList();
-      } catch (err) {
-        console.error(err);
-        ElMessage.error('操作失败');
-      }
-    };
-const filteredListLength = computed(() => filteredList.value.length)
-// 新增：关键词筛选相关
-const coreKeyFilter = ref('all');
-const coreKeyOptions = computed(() => {
-  const keys = Array.from(new Set(englishList.value.map(e => e.coreKey)));
-  return ['all', ...keys];
-});
-
-const currentAnswer = computed(() =>
-  usedIndices.value.map(i => shuffledLetters.value[i]).join('')
-);
-
-const userId = JSON.parse(localStorage.getItem('user') || '{}')?.id || null;
+const submitEnglish = async () => {
+  try {
+    if (isEditMode.value) {
+        console.log(form.value);
+      await englishApi.updateEnglish(form.value);
+      ElMessage.success('修改成功');
+    } else {
+        // console.log(form.value);
+      await englishApi.addEnglish(form.value);
+      ElMessage.success('新增成功');
+    }
+    dialogVisible.value = false;
+    fetchEnglishList();
+  } catch (err) {
+    console.error(err);
+    ElMessage.error('操作失败');
+  }
+};
+// 标熟
 const updateIsTaboo = async (currentWord: English) => {
   if (!currentWord) return;
   try {
@@ -257,6 +167,30 @@ const updateIsTaboo = async (currentWord: English) => {
     ElMessage.error('操作失败');
   }
 }
+// 获取要背的 english，初始化各个信息
+const cww = 299521;
+const englishList = ref<English[]>([]);
+const filteredList = ref<English[]>([])
+const filteredListLength = computed(() => filteredList.value.length)
+const coreKeyFilter = ref('all');
+const coreKeyOptions = computed(() => {
+  const keys = Array.from(new Set(englishList.value.map(e => e.coreKey)));
+  return ['all', ...keys];
+});
+const form = ref<English>({
+    egId: 0,
+    userId : uid,
+    content: '',
+    coreKey: '',
+    translation: '',
+    comment: '',
+    createDate: '',
+    updateDate: '',
+    isDeleted: '',
+    status: 'draft',
+    isTaboo: 0,
+    textCnt: 0,
+});
 const fetchEnglishList = async () => {
   try {
     vis.clear();
@@ -266,7 +200,6 @@ const fetchEnglishList = async () => {
     for(let item of res.data) {
       let diff = -dayjs(item.updateDate).diff(dayjs(v), 'seconds');
       if(diff >= cww && item.isTaboo == '1') {
-        console.log(item, diff, 99999999);
         item.isTaboo = 0;
         try {
           item.updateDate = dayjs().format('YYYY-MM-DD HH:mm:ss');
@@ -282,20 +215,15 @@ const fetchEnglishList = async () => {
     );
     filteredList.value = list;
     englishList.value = list;
-    console.log(englishList.value);
     startGame();
   } catch (err) {
     console.error(err);
     ElMessage.error('获取失败');
   }
 };
-
+// 实际不是随机获取的，是按顺序循环获取的
+const currentIndex = ref(0)
 const getRandomWord = () => {
-  console.log(currentIndex.value, 888);
-//   let candidates = englishList.value.filter(w => w.content.length > 2);
-//   if (coreKeyFilter.value !== 'all') {
-//     candidates = candidates.filter(w => w.coreKey === coreKeyFilter.value);
-//   }
   if (!filteredListLength.value) return null;
   let res = filteredList.value[currentIndex.value];
   console.log(currentIndex.value, filteredListLength.value - 1);
@@ -309,14 +237,9 @@ const getRandomWord = () => {
     }
     res = filteredList.value[currentIndex.value];
   }
-  // 666
-  // vis.add(res);
-  // console.log(res);
-//   currentIndex.value = (currentIndex.value + 1) % filteredListLength.value;
   return res;
-//   return candidates[Math.floor(Math.random() * candidates.length)];
 };
-
+// 打乱字母
 const shuffle = (word: string) => {
   const arr = word.split('');
   for (let i = arr.length - 1; i > 0; i--) {
@@ -325,7 +248,12 @@ const shuffle = (word: string) => {
   }
   return arr;
 };
-
+// 游戏开始
+const currentWord = ref<English | null>(null);
+const shuffledLetters = ref<string[]>([]);
+const usedIndices = ref<number[]>([]);
+const typedAnswer = ref('');
+const showHint = ref(false); // 显示提示
 const startGame = () => {
   const word = getRandomWord();
   if (!word) {
@@ -338,7 +266,7 @@ const startGame = () => {
   typedAnswer.value = '';
   showHint.value = false;
 };
-
+// 选择字母
 const selectLetter = (index: number) => {
   const i = usedIndices.value.indexOf(index);
   if (i === -1) {
@@ -347,7 +275,12 @@ const selectLetter = (index: number) => {
     usedIndices.value.splice(i, 1);
   }
 };
-
+// 检查答案
+const currentAnswer = computed(() =>
+  usedIndices.value.map(i => shuffledLetters.value[i]).join('')
+);
+const vis = new Set();
+const streak = ref(0); // 连续答对次数
 const checkAnswer = () => {
   if (!currentWord.value) return;
 
@@ -365,7 +298,6 @@ const checkAnswer = () => {
   if (answer.toLowerCase() === currentWord.value.content.toLowerCase()) {
     ElMessage.success('🎉 答对了！');
     streak.value++;
-    console.log(currentWord.value, 222222);
     vis.add(currentWord.value);
     currentWord.value.textCnt += 1;
     try {
@@ -384,7 +316,8 @@ const checkAnswer = () => {
 
   typedAnswer.value = '';
 };
-
+// 显示提示
+let hintTimeout: number | null = null;
 const showHintTemporarily = () => {
   if (!currentWord.value) return;
   showHint.value = true;
@@ -393,20 +326,20 @@ const showHintTemporarily = () => {
     showHint.value = false;
   }, 2000);
 };
-
+// 上/下一个
 const goWhere = (v : number) => {
   console.log(currentIndex.value, 9999);
   currentIndex.value = (currentIndex.value + v + filteredListLength.value) % filteredListLength.value;
   console.log(currentIndex.value, 9999999);
   startGame();
 };
-
+// 按 Enter 进行检查
 const handleKeyDown = (event: KeyboardEvent) => {
   if (event.key === 'Enter') {
     checkAnswer();
   }
 };
-
+// 源头，没了
 onMounted(() => {
   console.log(reviewApi.getAllReviews(userId));
   fetchEnglishList();
@@ -421,7 +354,6 @@ onBeforeUnmount(() => {
 // 🔁 筛选关键词时重新开始游戏
 watch(coreKeyFilter, () => {
   filteredList.value = englishList.value.filter(e => e.coreKey === coreKeyFilter.value)
-  console.log(filteredList.value, 111111);
   vis.clear();
   currentIndex.value = 0;
   streak.value = 0;
