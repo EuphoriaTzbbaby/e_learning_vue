@@ -54,6 +54,7 @@
               'correct': cell.status === 'correct',
               'present': cell.status === 'present',
               'absent': cell.status === 'absent',
+              'incorrect': cell.status === 'incorrect',
               'current': rowIndex === currentRow && cellIndex === currentCol,
               'shake': shakeRow === rowIndex
             }"
@@ -322,9 +323,14 @@ export default defineComponent({
       
       // 检查单词是否在列表中
       if (!filteredWords.value.includes(guess)) {
+        for(let i = 0; i < cols; i++) {
+          gameGrid.value[currentRow.value][i].status = 'incorrect';
+        }
         shakeRow.value = currentRow.value;
         setTimeout(() => { shakeRow.value = -1; }, 500);
         ElMessage.error('不是有效单词');
+        currentRow.value++;
+        currentCol.value = 0;
         return;
       }
       
@@ -623,6 +629,11 @@ export default defineComponent({
   background-color: #787c7e;
   border-color: #787c7e;
   color: white;
+}
+.grid-cell.incorrect {
+  background-color: #441bbd;
+  border-color: #12d830;
+  color: rgb(204, 12, 12);
 }
 .grid-cell.current {
   border-color: #409eff;
