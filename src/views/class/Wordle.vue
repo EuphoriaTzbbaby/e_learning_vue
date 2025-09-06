@@ -180,7 +180,7 @@ export default defineComponent({
     const hintsRemaining = ref(2);
     const showStats = ref(false);
     const showSettings = ref(false);
-    
+    const rows = 7;
     // 键盘布局 - 全部小写
     const keyboardLayout = [
       ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
@@ -243,7 +243,6 @@ export default defineComponent({
     
     // 初始化游戏网格
     const initGameGrid = () => {
-      const rows = 6;
       const cols = getCurrentCols();
       gameGrid.value = Array(rows).fill(null).map(() => 
         Array(cols).fill(null).map(() => ({
@@ -329,8 +328,14 @@ export default defineComponent({
         shakeRow.value = currentRow.value;
         setTimeout(() => { shakeRow.value = -1; }, 500);
         ElMessage.error('不是有效单词');
-        currentRow.value++;
-        currentCol.value = 0;
+        if (currentRow.value === rows) {
+          gameStatus.value = 'lost';
+          currentStreak.value = 0;
+          ElMessage.error(`游戏结束！答案是: ${targetWord.value}`);
+        } else {
+          currentRow.value++;
+          currentCol.value = 0;
+        }
         return;
       }
       
@@ -384,7 +389,7 @@ export default defineComponent({
         }
         guessDistribution.value[currentRow.value]++;
         ElMessage.success('恭喜你猜对了！');
-      } else if (currentRow.value === 5) {
+      } else if (currentRow.value === rows) {
         gameStatus.value = 'lost';
         currentStreak.value = 0;
         ElMessage.error(`游戏结束！答案是: ${targetWord.value}`);
