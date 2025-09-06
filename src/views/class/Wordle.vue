@@ -328,7 +328,7 @@ export default defineComponent({
         shakeRow.value = currentRow.value;
         setTimeout(() => { shakeRow.value = -1; }, 500);
         ElMessage.error('不是有效单词');
-        if (currentRow.value === rows) {
+        if (currentRow.value === rows - 1) {
           gameStatus.value = 'lost';
           currentStreak.value = 0;
           ElMessage.error(`游戏结束！答案是: ${targetWord.value}`);
