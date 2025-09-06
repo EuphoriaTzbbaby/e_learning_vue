@@ -148,6 +148,9 @@ async function fetchDue() {
       list.value = [];
       return;
     }
+    unfinishedReviews.sort((a, b) => {
+      return dayjs(a.nextReview).unix() - dayjs(b.nextReview).unix();
+    })
     console.log(unfinishedReviews, 0);
     const egIds = unfinishedReviews.map((r) => r.egId);
     const enRes = await englishApi.getEnglishByIds(egIds);
