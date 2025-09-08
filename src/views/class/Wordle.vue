@@ -5,32 +5,21 @@
       <div class="game-header">
         <h2>考研英语单词猜猜乐</h2>
         <div class="game-stats">
-          <el-tag type="info" effect="dark">
-            胜率: {{ winRate }}%
-          </el-tag>
-          <el-tag type="success" effect="dark">
-            连胜: {{ streak }}
-          </el-tag>
-          <el-tag type="warning" effect="dark">
-            当前难度: {{ difficultyLevel }}
-          </el-tag>
+          <el-tag type="info" effect="dark">胜率: {{ winRate }}%</el-tag>
+          <el-tag type="success" effect="dark">连胜: {{ streak }}</el-tag>
+          <el-tag type="warning" effect="dark">当前难度: {{ difficultyLevel }}</el-tag>
         </div>
       </div>
-      
+
       <!-- 游戏控制区 -->
       <div class="game-controls">
         <el-button-group>
-          <el-button type="primary" @click="startNewGame" :icon="RefreshRight">
-            新游戏
-          </el-button>
-          <el-button type="success" @click="showHint" :disabled="hintsRemaining === 0">
-            提示 ({{ hintsRemaining }})
-          </el-button>
-          <el-button type="warning" @click="toggleTheme">
-            {{ isDarkMode ? '亮色模式' : '暗色模式' }}
-          </el-button>
+          <el-button type="primary" @click="startNewGame" :icon="RefreshRight">新游戏</el-button>
+          <el-button type="success" @click="showHint" :disabled="hintsRemaining === 0">提示 ({{ hintsRemaining }})</el-button>
+          <el-button type="warning" @click="toggleTheme">{{ isDarkMode ? '亮色模式' : '暗色模式' }}</el-button>
         </el-button-group>
-        <el-select v-model="difficulty" placeholder="选择难度" @change="changeDifficulty">
+
+        <el-select v-model="difficulty" placeholder="选择难度" @change="changeDifficulty" @keydown.enter.stop.prevent>
           <el-option label="3字母" value="3" />
           <el-option label="4字母" value="4" />
           <el-option label="5字母" value="5" />
@@ -41,7 +30,7 @@
           <el-option label="10字母" value="10" />
         </el-select>
       </div>
-      
+
       <!-- 游戏网格 -->
       <div class="game-grid" :class="{ 'dark-mode': isDarkMode }">
         <div v-for="(row, rowIndex) in gameGrid" :key="rowIndex" class="grid-row">
@@ -50,20 +39,20 @@
             :key="cellIndex"
             class="grid-cell"
             :class="{
-              'filled': cell.letter,
-              'correct': cell.status === 'correct',
-              'present': cell.status === 'present',
-              'absent': cell.status === 'absent',
-              'incorrect': cell.status === 'incorrect',
-              'current': rowIndex === currentRow && cellIndex === currentCol,
-              'shake': shakeRow === rowIndex
+              filled: !!cell.letter,
+              correct: cell.status === 'correct',
+              present: cell.status === 'present',
+              absent: cell.status === 'absent',
+              incorrect: cell.status === 'incorrect',
+              current: rowIndex === currentRow && cellIndex === currentActiveIndex,
+              shake: shakeRow === rowIndex
             }"
           >
             {{ cell.letter }}
           </div>
         </div>
       </div>
-      
+
       <!-- 虚拟键盘 -->
       <div class="keyboard" :class="{ 'dark-mode': isDarkMode }">
         <div v-for="(row, rowIndex) in keyboardLayout" :key="rowIndex" class="keyboard-row">
@@ -72,10 +61,10 @@
             :key="key"
             class="key"
             :class="{
-              'correct': keyStatus[key] === 'correct',
-              'present': keyStatus[key] === 'present',
-              'absent': keyStatus[key] === 'absent',
-              'wide': key === 'enter' || key === 'back'
+              correct: keyStatus[key] === 'correct',
+              present: keyStatus[key] === 'present',
+              absent: keyStatus[key] === 'absent',
+              wide: key === 'enter' || key === 'back'
             }"
             @click="handleKeyClick(key)"
           >
@@ -83,7 +72,7 @@
           </button>
         </div>
       </div>
-      
+
       <!-- 游戏状态提示 -->
       <div v-if="gameStatus !== 'playing'" class="game-message">
         <el-alert
@@ -95,7 +84,7 @@
           :closable="false"
         />
       </div>
-      
+
       <!-- 单词释义 -->
       <div v-if="gameStatus !== 'playing'" class="word-meaning">
         <el-card>
@@ -108,7 +97,7 @@
           <p>{{ currentWordMeaning }}</p>
         </el-card>
       </div>
-      
+
       <!-- 游戏统计弹窗 -->
       <el-dialog v-model="showStats" title="游戏统计" width="500px">
         <div class="stats-container">
@@ -129,13 +118,14 @@
             <div class="stat-label">最高连胜</div>
           </div>
         </div>
+
         <div class="guess-distribution">
           <h4>猜测分布</h4>
           <div v-for="(count, index) in guessDistribution" :key="index" class="guess-bar">
             <div class="guess-label">{{ index + 1 }}</div>
             <div class="guess-bar-container">
-              <div 
-                class="guess-bar-fill" 
+              <div
+                class="guess-bar-fill"
                 :style="{ width: `${(count / Math.max(...guessDistribution, 1)) * 100}%` }"
               ></div>
             </div>
@@ -143,7 +133,7 @@
           </div>
         </div>
       </el-dialog>
-      
+
       <!-- 设置按钮 -->
       <div class="settings-btn">
         <el-button circle @click="showStats = true" :icon="DataLine" />
@@ -161,71 +151,83 @@ import { loadGraduateWords, filterWordsByDifficulty } from '../../utils/wordLoad
 
 export default defineComponent({
   name: 'WordleGame',
-  components: {
-    RefreshRight,
-    DataLine,
-    Setting
-  },
+  components: { RefreshRight, DataLine, Setting },
   setup() {
-    // 游戏状态
+    // --- 基本状态 ---
     const gameStatus = ref<'playing' | 'won' | 'lost'>('playing');
-    const targetWord = ref(''); // 存储小写
+    const targetWord = ref(''); // 小写
     const currentWordMeaning = ref('');
     const currentRow = ref(0);
-    const currentCol = ref(0);
+    const currentCol = ref(0); // 指向下一个可填格子 (0..cols)
     const gameGrid = ref<Array<Array<{ letter: string; status: string }>>>([]);
     const shakeRow = ref(-1);
     const isDarkMode = ref(false);
-    const difficulty = ref('5'); // 默认5字母
+    const difficulty = ref('5');
     const hintsRemaining = ref(2);
     const showStats = ref(false);
     const showSettings = ref(false);
     const rows = 7;
-    // 键盘布局 - 全部小写
+
+    // IME 处理
+    const isComposing = ref(false);
+
+    // 键盘布局（小写）
     const keyboardLayout = [
       ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
       ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
       ['enter', 'z', 'x', 'c', 'v', 'b', 'n', 'm', 'back']
     ];
-    
-    // 键盘状态 - 使用小写字母作为键
-    const keyStatus = ref<Record<string, string>>({});
-    
-    // 游戏统计
+
+    // 键盘状态（只记录字母）
+    const keyStatus = ref<Record<string, 'correct' | 'present' | 'absent' | undefined>>({});
+
+    // 统计
     const gamesPlayed = ref(0);
     const gamesWon = ref(0);
     const currentStreak = ref(0);
     const maxStreak = ref(0);
-    const guessDistribution = ref([0, 0, 0, 0, 0, 0]);
-    
+    const guessDistribution = ref<number[]>([]); // 动态与 rows 对齐
+
     // 单词列表
-    const allWords = ref<Array<{word: string, meaning: string}>>([]);
-    const filteredWords = ref<string[]>([]); // 存储小写
-    
+    const allWords = ref<Array<{ word: string; meaning: string }>>([]);
+    const filteredWords = ref<string[]>([]);
+
     // 计算属性
-    const winRate = computed(() => {
-      return gamesPlayed.value ? Math.round((gamesWon.value / gamesPlayed.value) * 100) : 0;
-    });
+    const winRate = computed(() => (gamesPlayed.value ? Math.round((gamesWon.value / gamesPlayed.value) * 100) : 0));
     const streak = computed(() => currentStreak.value);
-    const difficultyLevel = computed(() => {
-      return `${difficulty.value}字母`;
+    const difficultyLevel = computed(() => `${difficulty.value}字母`);
+
+    // 当前列数（根据难度）
+    const getCurrentCols = () => parseInt(difficulty.value, 10);
+
+    // 当前高亮单元格索引（当 currentCol === 0 时高亮第0格；否则高亮 currentCol）
+    const currentActiveIndex = computed(() => {
+      const cols = getCurrentCols();
+      // 如果当前col指向下一格并等于cols（满了），则高亮最后格
+      if (currentCol.value <= 0) return 0;
+      return Math.min(currentCol.value, cols - 1);
     });
-    
-    // 获取当前列数
-    const getCurrentCols = () => {
-      return parseInt(difficulty.value);
+
+    // 初始化 guessDistribution 与网格
+    const resetGuessDistribution = () => {
+      guessDistribution.value = Array(rows).fill(0);
     };
-    
-    // 获取单词列表
+
+    const initGameGrid = () => {
+      const cols = getCurrentCols();
+      gameGrid.value = Array.from({ length: rows }, () =>
+        Array.from({ length: cols }, () => ({ letter: '', status: '' }))
+      );
+    };
+
+    // 从工具中加载单词
     const fetchEnglishList = async () => {
       try {
-        // 从本地txt文件加载单词
         allWords.value = await loadGraduateWords();
-        if (allWords.value.length === 0) {
-          ElMessage.error('未能加载单词列表，请检查文件是否存在');
+        if (!Array.isArray(allWords.value) || allWords.value.length === 0) {
+          ElMessage.error('未能加载单词列表，请检查文件是否存在或格式是否正确');
           return;
         }
-        // 根据难度过滤单词
         updateFilteredWords();
         ElMessage.success(`成功加载 ${allWords.value.length} 个考研单词`);
       } catch (err) {
@@ -233,304 +235,367 @@ export default defineComponent({
         ElMessage.error('获取单词列表失败');
       }
     };
-    
-    // 根据难度更新单词列表
+
     const updateFilteredWords = () => {
-      const wordLength = getCurrentCols();
-      filteredWords.value = filterWordsByDifficulty(allWords.value, wordLength.toString());
-      console.log(`当前难度 ${difficulty.value} 字母下有 ${filteredWords.value.length} 个单词`);
-    };
-    
-    // 初始化游戏网格
-    const initGameGrid = () => {
       const cols = getCurrentCols();
-      gameGrid.value = Array(rows).fill(null).map(() => 
-        Array(cols).fill(null).map(() => ({
-          letter: '', // 存储小写
-          status: ''
-        }))
-      );
+      filteredWords.value = filterWordsByDifficulty(allWords.value, String(cols)) || [];
+      // 保证所有单词均小写
+      filteredWords.value = filteredWords.value.map(w => w.toLowerCase());
     };
-    
-    // 开始新游戏
+
+    // 开始新游戏（只有在 filteredWords 有内容时）
     const startNewGame = () => {
-      if (filteredWords.value.length === 0) {
-        ElMessage.warning(`没有符合条件的${difficulty.value}字母单词，请选择其他难度`);
+      if (!filteredWords.value || filteredWords.value.length === 0) {
+        ElMessage.warning(`没有符合条件的 ${difficulty.value} 字母单词，请选择其他难度或等待单词加载完成`);
         return;
       }
-      
-      // 随机选择目标单词
+
+      // 随机选择目标单词（小写）
       const randomIndex = Math.floor(Math.random() * filteredWords.value.length);
-      targetWord.value = filteredWords.value[randomIndex]; // 存储小写
-      
-      // 获取单词释义
-      const wordObj = allWords.value.find(item => item.word === targetWord.value);
+      targetWord.value = filteredWords.value[randomIndex];
+
+      // 释义
+      const wordObj = allWords.value.find(item => item.word.toLowerCase() === targetWord.value);
       currentWordMeaning.value = wordObj ? wordObj.meaning : '暂无释义';
-      
-      // 重置游戏状态
+
+      // 重置
       gameStatus.value = 'playing';
       currentRow.value = 0;
       currentCol.value = 0;
       shakeRow.value = -1;
       hintsRemaining.value = 2;
       keyStatus.value = {};
-      
-      // 初始化网格
+      resetGuessDistribution();
       initGameGrid();
-      console.log('目标单词:', targetWord.value); // 调试用，实际应删除
+      // 注意：为保护游戏答案，正式环境下不要打印 targetWord
+      // console.debug('target:', targetWord.value);
     };
-    
-    // 处理键盘点击
+
+    // 按键处理（虚拟键与逻辑键）
     const handleKeyClick = (key: string) => {
       if (gameStatus.value !== 'playing') return;
       const cols = getCurrentCols();
-      
+
       if (key === 'back') {
-        // 删除字母
         if (currentCol.value > 0) {
           currentCol.value--;
           gameGrid.value[currentRow.value][currentCol.value].letter = '';
+          gameGrid.value[currentRow.value][currentCol.value].status = '';
         }
-      } else if (key === 'enter') {
-        // 提交猜测
+        return;
+      }
+
+      if (key === 'enter') {
         submitGuess();
-      } else {
-        // 添加字母（小写）
-        if (currentCol.value < cols) {
-          gameGrid.value[currentRow.value][currentCol.value].letter = key;
-          currentCol.value++;
-        }
+        return;
+      }
+
+      // 只接受 a-z 单字母
+      if (!/^[a-z]$/.test(key)) return;
+
+      if (currentCol.value < cols) {
+        gameGrid.value[currentRow.value][currentCol.value].letter = key;
+        // 每次填字将该单元的 status 清空（准备评判）
+        gameGrid.value[currentRow.value][currentCol.value].status = '';
+        currentCol.value++;
       }
     };
-    
+
     // 提交猜测
-    const submitGuess = async () => {
+    const submitGuess = () => {
       const cols = getCurrentCols();
-      
-      // 检查是否填满当前行
+
+      // 若未填满则提示并抖动
       if (currentCol.value !== cols) {
         shakeRow.value = currentRow.value;
-        setTimeout(() => { shakeRow.value = -1; }, 500);
+        setTimeout(() => (shakeRow.value = -1), 500);
         ElMessage.warning('请填满所有格子');
         return;
       }
-      
-      // 获取当前猜测的单词（小写）
-      const guess = gameGrid.value[currentRow.value]
-        .map(cell => cell.letter)
-        .join('');
-      
-      // 检查单词是否在列表中
+
+      const guess = gameGrid.value[currentRow.value].map(c => c.letter || '').join('').toLowerCase();
+
+      // 检查是否存在于过滤表（有效单词）
       if (!filteredWords.value.includes(guess)) {
-        for(let i = 0; i < cols; i++) {
+        // 将整行标为 incorrect 并抖动
+        for (let i = 0; i < cols; i++) {
           gameGrid.value[currentRow.value][i].status = 'incorrect';
         }
         shakeRow.value = currentRow.value;
-        setTimeout(() => { shakeRow.value = -1; }, 500);
-        ElMessage.error('不是有效单词');
+        setTimeout(() => (shakeRow.value = -1), 500);
+
+        // 如果是最后一行，游戏结束（失败）
         if (currentRow.value === rows - 1) {
-          gameStatus.value = 'lost';
-          currentStreak.value = 0;
-          ElMessage.error(`游戏结束！答案是: ${targetWord.value}`);
+          endGameAsLost();
         } else {
           currentRow.value++;
           currentCol.value = 0;
         }
         return;
       }
-      
-      // 检查字母状态
+
+      // 正常评判单词
       const targetLetters = targetWord.value.split('');
       const guessLetters = guess.split('');
-      const letterStatus: Record<string, string> = {};
-      
-      // 第一遍：标记正确位置的字母
+      const letterStatus: Record<string, 'correct' | 'present' | 'absent'> = {};
+
+      // 先标记完全匹配
       for (let i = 0; i < cols; i++) {
         if (guessLetters[i] === targetLetters[i]) {
           gameGrid.value[currentRow.value][i].status = 'correct';
-          letterStatus[guessLetters[i]] = 'correct'; // 键盘状态使用小写
+          letterStatus[guessLetters[i]] = 'correct';
           targetLetters[i] = ''; // 标记为已处理
         }
       }
-      
-      // 第二遍：标记存在但位置错误的字母
+
+      // 再标记存在但位置不对 / 不存在
       for (let i = 0; i < cols; i++) {
-        if (gameGrid.value[currentRow.value][i].status !== 'correct') {
-          const index = targetLetters.indexOf(guessLetters[i]);
-          if (index !== -1) {
-            gameGrid.value[currentRow.value][i].status = 'present';
-            letterStatus[guessLetters[i]] = 'present'; // 键盘状态使用小写
-            targetLetters[index] = ''; // 标记为已处理
-          } else {
-            gameGrid.value[currentRow.value][i].status = 'absent';
-            if (!letterStatus[guessLetters[i]]) {
-              letterStatus[guessLetters[i]] = 'absent'; // 键盘状态使用小写
-            }
+        if (gameGrid.value[currentRow.value][i].status === 'correct') continue;
+        const idx = targetLetters.indexOf(guessLetters[i]);
+        if (idx !== -1) {
+          gameGrid.value[currentRow.value][i].status = 'present';
+          // 只有当不是已经标为 correct 时覆盖为 present
+          if (letterStatus[guessLetters[i]] !== 'correct') {
+            letterStatus[guessLetters[i]] = 'present';
           }
+          targetLetters[idx] = '';
+        } else {
+          gameGrid.value[currentRow.value][i].status = 'absent';
+          if (!letterStatus[guessLetters[i]]) letterStatus[guessLetters[i]] = 'absent';
         }
       }
-      
-      // 更新键盘状态
-      Object.keys(letterStatus).forEach(key => {
-        if (!keyStatus.value[key] || 
-            (keyStatus.value[key] !== 'correct' && letterStatus[key] === 'correct') ||
-            (keyStatus.value[key] === 'absent' && letterStatus[key] !== 'absent')) {
-          keyStatus.value[key] = letterStatus[key];
+
+      // 更新键盘状态（优先级： correct > present > absent）
+      Object.keys(letterStatus).forEach(k => {
+        const newStatus = letterStatus[k];
+        const prev = keyStatus.value[k];
+        if (
+          !prev ||
+          (prev !== 'correct' && newStatus === 'correct') ||
+          (prev === 'absent' && newStatus !== 'absent')
+        ) {
+          keyStatus.value[k] = newStatus;
         }
       });
-      
-      // 检查游戏状态
+
+      // 胜利判断
       if (guess === targetWord.value) {
-        gameStatus.value = 'won';
-        gamesWon.value++;
-        currentStreak.value++;
-        if (currentStreak.value > maxStreak.value) {
-          maxStreak.value = currentStreak.value;
-        }
-        guessDistribution.value[currentRow.value]++;
-        ElMessage.success('恭喜你猜对了！');
-      } else if (currentRow.value === rows) {
-        gameStatus.value = 'lost';
-        currentStreak.value = 0;
-        ElMessage.error(`游戏结束！答案是: ${targetWord.value}`);
-      } else {
-        // 进入下一行
-        currentRow.value++;
-        currentCol.value = 0;
+        endGameAsWon();
+        return;
       }
-      
-      // 更新游戏统计
+
+      // 若是最后一行也算失败
+      if (currentRow.value === rows - 1) {
+        endGameAsLost();
+        return;
+      }
+
+      // 进入下一行
+      currentRow.value++;
+      currentCol.value = 0;
+    };
+
+    // 游戏结束处理（胜利）
+    const endGameAsWon = () => {
+      gameStatus.value = 'won';
+      gamesWon.value++;
+      currentStreak.value++;
+      if (currentStreak.value > maxStreak.value) maxStreak.value = currentStreak.value;
+      // 统计猜测分布（以当前行作为索引）
+      guessDistribution.value[currentRow.value] = (guessDistribution.value[currentRow.value] || 0) + 1;
       gamesPlayed.value++;
       saveGameStats();
+      ElMessage.success('恭喜你猜对了！');
     };
-    
-    // 显示提示
+
+    // 游戏结束处理（失败）
+    const endGameAsLost = () => {
+      gameStatus.value = 'lost';
+      currentStreak.value = 0;
+      // 统计失败（放在最后一格位置）
+      guessDistribution.value[currentRow.value] = (guessDistribution.value[currentRow.value] || 0) + 1;
+      gamesPlayed.value++;
+      saveGameStats();
+      ElMessage.error(`游戏结束！答案是: ${targetWord.value}`);
+    };
+
+    // 提示（不会把 currentCol 强制移到提示列）
     const showHint = () => {
       if (hintsRemaining.value <= 0) return;
-      // 找到一个未揭示的位置
       const cols = getCurrentCols();
-      const unrevealedPositions = [];
-      let filledPositions = 0; // 已填写的位置计数
-      // 检查每一列是否在之前行中已经是correct状态
+      const unrevealedPositions: number[] = [];
+      let filledPositions = 0;
+
       for (let i = 0; i < cols; i++) {
-        // 如果当前位置已经有字母，增加已填写计数
         if (gameGrid.value[currentRow.value][i].letter) {
           filledPositions++;
           continue;
         }
-        // 检查该列在之前行中是否已经是correct状态
+        // 检查之前行是否有 correct
         let isColumnCorrect = false;
-        for (let row = 0; row < currentRow.value; row++) {
-          if (gameGrid.value[row][i].status === 'correct') {
+        for (let r = 0; r < currentRow.value; r++) {
+          if (gameGrid.value[r][i].status === 'correct') {
             isColumnCorrect = true;
-            filledPositions++; // 正确的列也算作已填写
+            filledPositions++; // 视为已确定
             break;
           }
         }
-        // 如果该列在之前行中不是correct状态，则加入可提示位置列表
-        if (!isColumnCorrect) {
-          unrevealedPositions.push(i);
-        }
+        if (!isColumnCorrect) unrevealedPositions.push(i);
       }
-      // 计算未填写的位置数
+
       const unfilledCount = cols - filledPositions;
-      // 如果只剩下一列未猜出来，不给提示
       if (unfilledCount === 1) {
         ElMessage.warning('只剩一个字母了，自己猜猜看吧！');
         return;
       }
-      // 如果没有可提示的位置，显示提示信息
       if (unrevealedPositions.length === 0) {
         ElMessage.warning('没有可提示的字母，所有未知列都已提示或已猜对');
         return;
       }
-      // 有可提示的位置，执行提示逻辑
+
       hintsRemaining.value--;
       const randomPos = unrevealedPositions[Math.floor(Math.random() * unrevealedPositions.length)];
-      gameGrid.value[currentRow.value][randomPos].letter = targetWord.value[randomPos]; // 存储小写
-      currentCol.value = randomPos + 1;
-      ElMessage.info(`提示: 第${randomPos + 1}个字母是 ${targetWord.value[randomPos]}`);
+      // 将提示字母填入当前行的对应格，但不改变 currentCol 指针（保持玩家输入位置）
+      gameGrid.value[currentRow.value][randomPos].letter = targetWord.value[randomPos];
+      // 标记为 present/correct 只是作为视觉提示（不影响最终评判）
+      gameGrid.value[currentRow.value][randomPos].status = 'present';
+      ElMessage.info(`提示: 第 ${randomPos + 1} 个字母是 ${targetWord.value[randomPos]}`);
     };
-    
+
     // 切换主题
     const toggleTheme = () => {
       isDarkMode.value = !isDarkMode.value;
       document.documentElement.classList.toggle('dark', isDarkMode.value);
     };
-    
+
     // 更改难度
     const changeDifficulty = () => {
+      // 保存设置
+      localStorage.setItem('wordleDifficulty', difficulty.value);
       updateFilteredWords();
       startNewGame();
     };
-    
-    // 保存游戏统计
+
+    // 保存/加载游戏统计（包含 difficulty）
     const saveGameStats = () => {
       const stats = {
         gamesPlayed: gamesPlayed.value,
         gamesWon: gamesWon.value,
         currentStreak: currentStreak.value,
         maxStreak: maxStreak.value,
-        guessDistribution: guessDistribution.value
+        guessDistribution: guessDistribution.value,
+        difficulty: difficulty.value
       };
       localStorage.setItem('wordleStats', JSON.stringify(stats));
     };
-    
-    // 加载游戏统计
+
     const loadGameStats = () => {
-      const savedStats = localStorage.getItem('wordleStats');
-      if (savedStats) {
-        const stats = JSON.parse(savedStats);
+      const saved = localStorage.getItem('wordleStats');
+      if (!saved) return;
+      try {
+        const stats = JSON.parse(saved);
         gamesPlayed.value = stats.gamesPlayed || 0;
         gamesWon.value = stats.gamesWon || 0;
         currentStreak.value = stats.currentStreak || 0;
         maxStreak.value = stats.maxStreak || 0;
-        guessDistribution.value = stats.guessDistribution || [0, 0, 0, 0, 0, 0];
+        guessDistribution.value = stats.guessDistribution || Array(rows).fill(0);
+        // 恢复难度（优先本地 saved，若无再看 localStorage 的单独设置）
+        if (stats.difficulty) difficulty.value = stats.difficulty;
+      } catch (e) {
+        console.warn('读取本地统计失败', e);
       }
     };
-    
-    // 处理物理键盘事件
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (gameStatus.value !== 'playing') return;
-      
-      // 处理删除键
-      if (event.key === 'Backspace') {
+
+    // 物理键盘处理（并发的 IME 支持）
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (gameStatus.value !== 'playing' || isComposing.value) return;
+      // 如果焦点在 el-select 内，直接 return
+        if ((e.target as HTMLElement).closest('.el-select')) {
+          return;
+        }
+      if (e.key === 'Backspace') {
+        e.preventDefault();
         handleKeyClick('back');
         return;
       }
-      
-      // 处理回车键
-      if (event.key === 'Enter') {
+      if (e.key === 'Enter') {
+        e.preventDefault();
         handleKeyClick('enter');
         return;
       }
-      
-      // 处理字母键（转换为小写）
-      const key = event.key.toLowerCase();
+
+      // 支持大小写 a-z
+      const key = e.key.length === 1 ? e.key.toLowerCase() : '';
       if (key >= 'a' && key <= 'z') {
+        e.preventDefault();
         handleKeyClick(key);
       }
     };
-    
-    // 生命周期钩子
+
+    // 处理粘贴（只取字母并截断为当前 cols）
+    const handlePaste = (e: ClipboardEvent) => {
+      if (gameStatus.value !== 'playing' || isComposing.value) return;
+      const text = (e.clipboardData?.getData('text') || '').toLowerCase();
+      if (!text) return;
+      const cols = getCurrentCols();
+      // 只保留字母
+      const letters = text.replace(/[^a-z]/g, '').slice(0, cols).split('');
+      if (letters.length !== cols) {
+        // 不完整粘贴仍允许填充，但不自动提交
+        for (let i = 0; i < letters.length && i < cols; i++) {
+          gameGrid.value[currentRow.value][i].letter = letters[i];
+        }
+        currentCol.value = Math.min(letters.length, cols);
+        return;
+      }
+      // 若粘贴完整行则直接填充并提交
+      for (let i = 0; i < cols; i++) {
+        gameGrid.value[currentRow.value][i].letter = letters[i];
+      }
+      currentCol.value = cols;
+      submitGuess();
+    };
+
+    // IME composition 事件
+    const handleCompositionStart = () => (isComposing.value = true);
+    const handleCompositionEnd = () => (isComposing.value = false);
+
+    // 生命周期
     onMounted(async () => {
+      // 先恢复本地设置（难度）
+      const localDiff = localStorage.getItem('wordleDifficulty');
+      if (localDiff) difficulty.value = localDiff;
+
+      // 加载单词并统计
       await fetchEnglishList();
+      resetGuessDistribution();
       loadGameStats();
-      startNewGame();
-      // 添加键盘事件监听
+      initGameGrid();
+
+      // 若有可用单词立即开始游戏
+      if (filteredWords.value.length > 0) startNewGame();
+
+      // 事件监听
       window.addEventListener('keydown', handleKeyDown);
+      window.addEventListener('paste', handlePaste);
+      window.addEventListener('compositionstart', handleCompositionStart);
+      window.addEventListener('compositionend', handleCompositionEnd);
     });
-    
-    // 清理事件监听
+
     onUnmounted(() => {
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('paste', handlePaste);
+      window.removeEventListener('compositionstart', handleCompositionStart);
+      window.removeEventListener('compositionend', handleCompositionEnd);
     });
-    
+
     return {
+      // state
       gameStatus,
       gameGrid,
       currentRow,
       currentCol,
+      currentActiveIndex,
       shakeRow,
       isDarkMode,
       difficulty,
@@ -539,6 +604,7 @@ export default defineComponent({
       currentWordMeaning,
       showStats,
       showSettings,
+      // UI
       keyboardLayout,
       keyStatus,
       winRate,
@@ -549,11 +615,13 @@ export default defineComponent({
       currentStreak,
       maxStreak,
       guessDistribution,
+      // actions
       handleKeyClick,
       startNewGame,
       showHint,
       toggleTheme,
       changeDifficulty,
+      // icons
       RefreshRight,
       DataLine,
       Setting
@@ -564,19 +632,19 @@ export default defineComponent({
 
 <style scoped>
 .wordle-game {
-  max-width: 800px;
+  max-width: 880px;
   margin: 0 auto;
   padding: 20px;
 }
 .game-card {
   border-radius: 12px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 }
 .game-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 .game-header h2 {
   margin: 0;
@@ -585,40 +653,43 @@ export default defineComponent({
 .game-stats {
   display: flex;
   gap: 10px;
+  align-items: center;
 }
 .game-controls {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 10px;
 }
 .game-grid {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin: 20px 0;
-  justify-content: center;
+  gap: 8px;
+  margin: 18px 0;
+  align-items: center;
 }
 .grid-row {
   display: flex;
-  gap: 5px;
+  gap: 8px;
   justify-content: center;
 }
 .grid-cell {
-  width: 50px;
-  height: 50px;
+  width: 56px;
+  height: 56px;
   border: 2px solid #d3d3d3;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  border-radius: 4px;
+  font-size: 22px;
+  font-weight: 700;
+  transition: all 0.18s ease;
+  border-radius: 6px;
+  background: #fff;
+  color: #222;
 }
 .grid-cell.filled {
-  animation: pop 0.2s ease-in-out;
+  animation: pop 0.18s ease-in-out;
 }
 .grid-cell.correct {
   background-color: #6aaa64;
@@ -636,174 +707,89 @@ export default defineComponent({
   color: white;
 }
 .grid-cell.incorrect {
-  background-color: #441bbd;
-  border-color: #12d830;
-  color: rgb(204, 12, 12);
+  background-color: #f2d0d0;
+  border-color: #f2d0d0;
+  color: #b00020;
 }
 .grid-cell.current {
+  box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.12);
   border-color: #409eff;
-  animation: pulse 1s infinite;
 }
 .grid-cell.shake {
   animation: shake 0.5s;
 }
 @keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0% { transform: scale(0.98); }
+  50% { transform: scale(1.06); }
   100% { transform: scale(1); }
-}
-@keyframes pulse {
-  0% { border-color: #409eff; }
-  50% { border-color: #a0cfff; }
-  100% { border-color: #409eff; }
 }
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
 }
 .keyboard {
-  margin-top: 20px;
+  margin-top: 18px;
 }
 .keyboard-row {
   display: flex;
   justify-content: center;
-  gap: 6px;
-  margin-bottom: 6px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 .key {
-  min-width: 40px;
-  height: 45px;
+  min-width: 44px;
+  height: 46px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   background-color: #d3d6da;
   color: #000;
   font-size: 14px;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  user-select: none;
 }
-.key:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-.key:active {
-  transform: translateY(0);
-}
-.key.wide {
-  min-width: 65px;
-}
-.key.correct {
-  background-color: #6aaa64;
-  color: white;
-}
-.key.present {
-  background-color: #c9b458;
-  color: white;
-}
-.key.absent {
-  background-color: #787c7e;
-  color: white;
-}
-.game-message {
-  margin-top: 20px;
-}
-.word-meaning {
-  margin-top: 20px;
-}
-.meaning-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+.key:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06); }
+.key:active { transform: translateY(0); }
+.key.wide { min-width: 78px; }
+.key.correct { background-color: #6aaa64; color: #fff; }
+.key.present { background-color: #c9b458; color: #fff; }
+.key.absent { background-color: #787c7e; color: #fff; }
+.game-message { margin-top: 18px; }
+.word-meaning { margin-top: 18px; }
+.meaning-header { display: flex; justify-content: space-between; align-items: center; }
 .settings-btn {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 22px;
+  right: 22px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.stats-container {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 20px;
-}
-.stat-item {
-  text-align: center;
-}
-.stat-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: #409eff;
-}
-.stat-label {
-  font-size: 14px;
-  color: #666;
-}
-.guess-distribution {
-  margin-top: 20px;
-}
-.guess-bar {
-  display: flex;
-  align-items: center;
-  margin-bottom: 5px;
-}
-.guess-label {
-  width: 20px;
-  text-align: right;
-  margin-right: 5px;
-  font-size: 14px;
-}
-.guess-bar-container {
-  flex-grow: 1;
-  height: 20px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-.guess-bar-fill {
-  height: 100%;
-  background-color: #409eff;
-  transition: width 0.5s ease;
-}
-.guess-count {
-  width: 20px;
-  text-align: left;
-  margin-left: 5px;
-  font-size: 14px;
-}
-/* 暗色模式 */
-.dark-mode {
-  background-color: #121213;
-  color: #ffffff;
-}
-.dark-mode .grid-cell {
-  border-color: #3a3a3c;
-}
-.dark-mode .key {
-  background-color: #818384;
-  color: #ffffff;
-}
-.dark-mode .key.correct {
-  background-color: #538d4e;
-}
-.dark-mode .key.present {
-  background-color: #b59f3b;
-}
-.dark-mode .key.absent {
-  background-color: #3a3a3c;
-}
-.dark-mode .stat-label {
-  color: #d3d3d3;
-}
-.dark-mode .guess-bar-container {
-  background-color: #3a3a3c;
-}
-.dark-mode .guess-bar-fill {
-  background-color: #538d4e;
-}
+.stats-container { display: flex; justify-content: space-around; margin-bottom: 18px; }
+.stat-item { text-align: center; }
+.stat-value { font-size: 22px; font-weight: 700; color: #409eff; }
+.stat-label { font-size: 13px; color: #666; }
+.guess-distribution { margin-top: 12px; }
+.guess-bar { display: flex; align-items: center; margin-bottom: 6px; gap: 8px; }
+.guess-label { width: 22px; text-align: right; font-size: 13px; }
+.guess-bar-container { flex-grow: 1; height: 22px; background-color: #f0f0f0; border-radius: 6px; overflow: hidden; }
+.guess-bar-fill { height: 100%; background-color: #409eff; transition: width 0.5s ease; }
+.guess-count { width: 26px; text-align: left; font-size: 13px; }
+
+.dark-mode { background-color: #121213; color: #ffffff; }
+.dark-mode .grid-cell { border-color: #3a3a3c; background: #18181a; color: #fff; }
+.dark-mode .key { background-color: #3a3a3c; color: #fff; }
+.dark-mode .key.correct { background-color: #538d4e; }
+.dark-mode .key.present { background-color: #b59f3b; }
+.dark-mode .key.absent { background-color: #3a3a3c; }
+.dark-mode .stat-label { color: #d3d3d3; }
+.dark-mode .guess-bar-container { background-color: #2b2b2b; }
+.dark-mode .guess-bar-fill { background-color: #538d4e; }
 </style>
