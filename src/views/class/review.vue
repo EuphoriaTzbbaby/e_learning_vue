@@ -167,18 +167,18 @@ const hardestWords = computed(() =>
 );
 
 // 卡片动画（数字增长效果）
-const animateNumber = (target: number, duration = 800) => {
-  const step = Math.ceil(target / (duration / 16));
-  const current = ref(0);
-  const timer = setInterval(() => {
-    current.value += step;
-    if (current.value >= target) {
-      current.value = target;
-      clearInterval(timer);
-    }
-  }, 16);
-  return current;
-};
+// const animateNumber = (target: number, duration = 800) => {
+//   const step = Math.ceil(target / (duration / 16));
+//   const current = ref(0);
+//   const timer = setInterval(() => {
+//     current.value += step;
+//     if (current.value >= target) {
+//       current.value = target;
+//       clearInterval(timer);
+//     }
+//   }, 16);
+//   return current;
+// };
 
 // 顶部卡片
 const stats = computed(() => [
