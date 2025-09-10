@@ -61,6 +61,12 @@
                         </el-icon>
                         <span>小蓝书</span>
                     </el-menu-item>
+                    <el-menu-item index="/student/review">
+                        <el-icon>
+                            <game />
+                        </el-icon>
+                        <span>复习记录</span>
+                    </el-menu-item>
                     <el-menu-item index="/favorites">
                         <el-icon>
                             <star />

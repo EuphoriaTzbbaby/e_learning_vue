@@ -24,6 +24,7 @@ import IpLocation from '../views/xhs/ipLocation.vue'
 import Gender from '../views/xhs/gender.vue'
 import EnglishGamePro from '../views/class/EnglishGamePro.vue'
 import Wordle from '../views/class/Wordle.vue'
+import Review from '../views/class/review.vue'
 const routes = [
   { path: '/', redirect: 'login' },
   { path: '/login', component: Login },
@@ -153,6 +154,11 @@ const routes = [
         name: 'game',
         component: Game
       },
+      {
+        path: 'review',
+        name: 'review',
+        component: Review
+      }
     ]
   }
 ]

@@ -16,6 +16,8 @@ const reviewLogApi = {
     deleteReviewLog: (id: number) => del(`/api/reviewLogs/delete//${id}`),
     // 根据 userId 获取复习记录
     getReviewLogByUserId: (id: number) => get(`/api/reviewLogs/get/${id}`),
+    // 获取所有复习记录
+    getAllReviewLogs: () => get('/api/reviewLogs/get/all'),
 };
 
 export default reviewLogApi;
