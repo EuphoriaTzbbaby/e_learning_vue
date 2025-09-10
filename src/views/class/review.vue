@@ -17,16 +17,6 @@
             />
         </el-col>
         <!-- 右侧 -->
-        <el-col :span="12" class="flex justify-end gap-3">
-            <el-button type="primary" size="large" @click="exportTable" :loading="exportingTable">
-            <el-icon><Download /></el-icon>
-            <span class="ml-1">导出表格</span>
-            </el-button>
-            <el-button type="success" size="large" @click="exportCharts" :loading="exportingCharts">
-            <el-icon><Picture /></el-icon>
-            <span class="ml-1">导出图表</span>
-            </el-button>
-        </el-col>
         </el-row>
     </el-card>
     <!-- 顶部统计卡片 -->
@@ -54,8 +44,9 @@
             <template #header>
             <div class="chart-header">
                 <b>📊 熟悉度分布</b>
-                <el-button size="small" text @click="downloadChart(pieChart, '熟悉度分布.png')">
+                <el-button type="primary" size="large" @click="exportTable" :loading="exportingTable">
                 <el-icon><Download /></el-icon>
+                <span class="ml-1">导出表格</span>
                 </el-button>
             </div>
             </template>
@@ -67,8 +58,9 @@
             <template #header>
             <div class="chart-header">
                 <b>📅 近 7 天趋势</b>
-                <el-button size="small" text @click="downloadChart(lineChart, '近7天趋势.png')">
-                <el-icon><Download /></el-icon>
+                <el-button type="success" size="large" @click="exportCharts" :loading="exportingCharts">
+                <el-icon><Picture /></el-icon>
+                <span class="ml-1">导出图表</span>
                 </el-button>
             </div>
             </template>
