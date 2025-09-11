@@ -86,7 +86,7 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    background: url('https://cwwdka.oss-cn-beijing.aliyuncs.com/e_learning/background.webp') no-repeat center center fixed;
+    background: url('https://cwwdka.oss-cn-beijing.aliyuncs.com/e_learning/%E5%88%BB%E6%99%B4%20%E6%B6%82%E9%B8%A6%E5%A2%99%E8%83%8C%E6%99%AF%204K%E5%A3%81%E7%BA%B8%203840x2160_%E5%BD%BC%E5%B2%B8%E5%9B%BE%E7%BD%91.jpg') no-repeat center center fixed;
     background-size: cover;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
@@ -109,16 +109,25 @@
     }
   }
   
-  .login-container {
-    max-width: 360px;
-    width: 90%;
-    padding: 32px 24px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    border-radius: 12px;
-    background-color: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(6px);
-    animation: fadeInUp 0.6s ease forwards;
-  }
+.login-container {
+  max-width: 360px;
+  width: 90%;
+  padding: 32px 24px;
+  border-radius: 16px;
+
+  /* 关键：背景更透明 */
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+
+  /* 细边框+阴影 */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+
   
   .title {
     text-align: center;
