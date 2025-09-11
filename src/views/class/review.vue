@@ -184,7 +184,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, nextTick } from "vue";
+import { ref, onMounted, computed, watch} from "vue";
 import reviewLogApi from "../../api/reviewLog";
 import englishApi from "../../api/english";
 import * as echarts from "echarts";
