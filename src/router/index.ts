@@ -25,6 +25,7 @@ import Gender from '../views/xhs/gender.vue'
 import EnglishGamePro from '../views/class/EnglishGamePro.vue'
 import Wordle from '../views/class/Wordle.vue'
 import Review from '../views/class/review.vue'
+// @ts-ignore 忽略类型检查，因为Vue文件没有类型声明
 import TestDs from '../views/class/TestDs.vue'
 const routes = [
   { path: '/', redirect: 'login' },
