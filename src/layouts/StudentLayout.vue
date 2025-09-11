@@ -76,6 +76,10 @@
               <el-icon><Game /></el-icon>
               <span>复习记录</span>
             </el-menu-item>
+            <el-menu-item index="/student/testDs">
+              <el-icon><Game /></el-icon>
+              <span>测试ds</span>
+            </el-menu-item>
             <el-menu-item index="/favorites">
               <el-icon><Star /></el-icon>
               <span>我的收藏</span>

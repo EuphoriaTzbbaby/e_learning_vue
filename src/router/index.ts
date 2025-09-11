@@ -25,6 +25,7 @@ import Gender from '../views/xhs/gender.vue'
 import EnglishGamePro from '../views/class/EnglishGamePro.vue'
 import Wordle from '../views/class/Wordle.vue'
 import Review from '../views/class/review.vue'
+import TestDs from '../views/class/TestDs.vue'
 const routes = [
   { path: '/', redirect: 'login' },
   { path: '/login', component: Login },
@@ -94,6 +95,11 @@ const routes = [
         path: 'reply',
         name: 'reply',
         component: Reply
+      },
+      {
+        path: 'testDs',
+        name: 'testDs',
+        component: TestDs
       }
     ]
   },
@@ -158,6 +164,11 @@ const routes = [
         path: 'review',
         name: 'review',
         component: Review
+      },
+      {
+        path: 'testDs',
+        name: 'testDs',
+        component: TestDs
       }
     ]
   }

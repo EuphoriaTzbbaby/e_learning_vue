@@ -32,6 +32,7 @@
   import { reactive, onMounted } from 'vue'
   import { post } from '../utils/axios/index'
   import router from '../router'
+  import { getDeepSeekResponse} from '../utils/ds'
   interface LoginForm {
     email: string
     password: string
@@ -73,8 +74,29 @@
         console.error(err)
       })
   }
-
+  const fuck = async () => {
+    try {
+      // 单个消息
+    const singleResponse = await getDeepSeekResponse(
+      "请用中文解释一下机器学习",
+      "你是一位AI教育专家"
+    );
+    console.log('AI回复:', singleResponse);
+    // const messages = [
+    //   "什么是深度学习？",
+    //   "Transformer模型是什么？",
+    //   "推荐一些学习AI的书籍"
+    // ];
+    
+    // const responses = await batchChat(messages, "请用简洁的语言回答");
+    // console.log('批量回复:', responses);
+    
+  } catch (error) {
+    console.error('批量处理失败:', error);
+  }
+}
   onMounted(() => {
+    fuck()
     // alert("目前先选student进行登录, 账号格式为 userx@example.com, 密码格式为 passx, x 取值为[1, 8, 9, 16, 18, 19, 20], 看后台管理把当前url后缀login改成admin")
     console.log("cnm777")
     document.title = 'E_learning平台'
