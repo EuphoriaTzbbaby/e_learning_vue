@@ -1,22 +1,43 @@
+<!-- src/App.vue -->
 <template>
-  <div class="app">
-    <!-- <Navbar v-if="!isLoginPage" /> -->
+  <div id="app">
+    <!-- 全局宠物组件 -->
+    <GlobalChat />
+    
+    <!-- 主内容区域 -->
     <router-view />
+    
+    <!-- 或者您的现有布局 -->
+    <!-- <div class="main-content">
+      <header>您的头部</header>
+      <main>您的内容</main>
+      <footer>您的底部</footer>
+    </div> -->
   </div>
 </template>
 
-<script lang="ts" setup>
-// import { useRoute } from 'vue-router'
-// import { computed } from 'vue'
-// import Navbar from './components/Navbar.vue' 8888
+<script setup lang="ts">
+import GlobalChat from './components/cwwChat.vue'
+// import { provide } from 'vue'
 
-// const route = useRoute()
-
-// 只在登录页隐藏 Navbar
-// const isLoginPage = computed(() => route.path === '/login')
+// 如果需要从子组件控制宠物，可以提供一个全局方法
+// provide('petControl', {
+//   showMessage: (message: string) => {
+//     // 这里可以通过ref获取宠物实例并调用方法
+//   }
+// })
 </script>
 
-<style scoped>
+<style>
+#app {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* 确保宠物在所有内容之上 */
+.global-pet {
+  z-index: 9999;
+}
 .app {
   /* 设置全局字体样式，按优先级依次使用 Avenir、Helvetica、Arial 或任意无衬线字体 */
   /* 字体族按优先级排序:
