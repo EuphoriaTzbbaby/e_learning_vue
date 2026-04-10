@@ -170,6 +170,7 @@
 <script lang="ts">
 import { defineComponent, ref, onMounted, computed} from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+// @ts-ignore - Icons are used in template
 import { Download, UploadFilled } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
 import * as XLSX from 'xlsx';

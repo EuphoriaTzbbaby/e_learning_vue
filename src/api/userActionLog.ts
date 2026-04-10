@@ -1,4 +1,4 @@
-import { get, post, put, del } from '../utils/axios';
+import { get, post, del } from '../utils/axios';
 
 const userActionLogApi = {
 
