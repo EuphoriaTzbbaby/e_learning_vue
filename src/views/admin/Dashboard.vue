@@ -201,7 +201,7 @@ import * as XLSX from 'xlsx'
 import {
   User,
   VideoCamera,
-  Collection,
+  // Collection,
   ChatDotRound,
   Reading,
   ArrowUp,
@@ -212,14 +212,14 @@ import {
   Refresh,
   DocumentAdd,
   Edit,
-  Delete
+  // Delete
 } from '@element-plus/icons-vue'
 import videoApi from '../../api/video'
 import videoAlbumApi from '../../api/videoAlbum'
 import commentApi from '../../api/comment'
 import usersApi from '../../api/users'
 import englishApi from '../../api/english'
-import reviewLogApi from '../../api/reviewLog'
+// import reviewLogApi from '../../api/reviewLog'
 
 const router = useRouter()
 
@@ -271,7 +271,7 @@ const recentActivities = ref([
 // 获取数据
 const fetchData = async () => {
   try {
-    const [videosRes, albumsRes, commentsRes, usersRes, englishRes] = await Promise.all([
+    const [videosRes, _albumsRes, commentsRes, usersRes, englishRes] = await Promise.all([
       videoApi.getAllVideos(),
       videoAlbumApi.getAllAlbums(),
       commentApi.getAllComments(),
@@ -307,9 +307,9 @@ const initUserGrowthChart = async () => {
     
     // 模拟数据
     const days = userGrowthPeriod.value === 'week' ? 7 : 30
-    const dates = []
-    const newUsers = []
-    const totalUsers = []
+    const dates: string[] = []
+    const newUsers: number[] = []
+    const totalUsers: number[] = []
     
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date()
@@ -476,7 +476,7 @@ const initWordCloudChart = async () => {
 }
 
 // 导出图表数据
-const exportChartData = (type: string) => {
+const exportChartData = (_type: string) => {
   ElMessage.info('图表数据导出功能开发中...')
 }
 

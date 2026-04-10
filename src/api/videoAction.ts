@@ -1,4 +1,4 @@
-import { get, post, put, del } from '../utils/axios';
+import { get, post, put} from '../utils/axios';
 
 const videoActionApi = {
     // ================== 点赞 / 收藏 ==================
