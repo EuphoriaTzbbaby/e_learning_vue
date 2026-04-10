@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>英语学习系统E-R图 - 可视化版本</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .diagram-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .entity-details {
+            margin-top: 50px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e9f7fe;
+        }
+        .primary-key {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .foreign-key {
+            font-style: italic;
+            color: #27ae60;
+        }
+        .entity-title {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>英语学习系统E-R图 - 可视化版本</h1>
+
+    <div class="diagram-container">
+        <svg width="1000" height="700" xmlns="http://www.w3.org/2000/svg">
+            <!-- 实体：用户 (User) -->
+            <rect x="100" y="250" width="140" height="80" fill="#3498db" rx="5" ry="5" />
+            <text x="170" y="295" text-anchor="middle" fill="white" font-weight="bold">用户 (User)</text>
+            
+            <!-- 实体：视频合集 (Album) -->
+            <rect x="400" y="100" width="140" height="80" fill="#3498db" rx="5" ry="5" />
+            <text x="470" y="145" text-anchor="middle" fill="white" font-weight="bold">视频合集 (Album)</text>
+            
+            <!-- 实体：视频 (Video) -->
+            <rect x="700" y="100" width="140" height="80" fill="#3498db" rx="5" ry="5" />
+            <text x="770" y="145" text-anchor="middle" fill="white" font-weight="bold">视频 (Video)</text>
+            
+            <!-- 实体：英语学习 (English) -->
+            <rect x="400" y="350" width="140" height="80" fill="#3498db" rx="5" ry="5" />
+            <text x="470" y="395" text-anchor="middle" fill="white" font-weight="bold">英语学习 (English)</text>
+            
+            <!-- 实体：复习状态 (ReviewState) -->
+            <rect x="700" y="350" width="140" height="80" fill="#3498db" rx="5" ry="5" />
+            <text x="770" y="395" text-anchor="middle" fill="white" font-weight="bold">复习状态 (ReviewState)</text>
+            
+            <!-- 实体：复习记录 (ReviewLog) -->
+            <rect x="550" y="550" width="140" height="80" fill="#3498db" rx="5" ry="5" />
+            <text x="620" y="595" text-anchor="middle" fill="white" font-weight="bold">复习记录 (ReviewLog)</text>
+            
+            <!-- 实体：AI阅读理解 (AIReading) -->
+            <rect x="250" y="550" width="140" height="80" fill="#3498db" rx="5" ry="5" />
+            <text x="320" y="595" text-anchor="middle" fill="white" font-weight="bold">AI阅读理解 (AIReading)</text>
+            
+            <!-- 关系：用户 → 视频合集 (1:N) -->
+            <line x1="240" y1="270" x2="400" y2="140" stroke="#9b59b6" stroke-width="2" />
+            <polygon points="390,135 400,140 390,145" fill="#9b59b6" />
+            <rect x="300" y="180" width="40" height="25" fill="#9b59b6" rx="10" ry="10" />
+            <text x="320" y="197" text-anchor="middle" fill="white" font-size="12">1:N</text>
+            
+            <!-- 关系：视频合集 → 视频 (1:N) -->
+            <line x1="540" y1="140" x2="700" y2="140" stroke="#9b59b6" stroke-width="2" />
+            <polygon points="690,135 700,140 690,145" fill="#9b59b6" />
+            <rect x="610" y="120" width="40" height="25" fill="#9b59b6" rx="10" ry="10" />
+            <text x="630" y="137" text-anchor="middle" fill="white" font-size="12">1:N</text>
+            
+            <!-- 关系：用户 → 英语学习 (1:N) -->
+            <line x1="240" y1="310" x2="400" y2="370" stroke="#9b59b6" stroke-width="2" />
+            <polygon points="390,365 400,370 390,375" fill="#9b59b6" />
+            <rect x="300" y="320" width="40" height="25" fill="#9b59b6" rx="10" ry="10" />
+            <text x="320" y="337" text-anchor="middle" fill="white" font-size="12">1:N</text>
+            
+            <!-- 关系：英语学习 → 复习状态 (1:1) -->
+            <line x1="540" y1="390" x2="700" y2="390" stroke="#9b59b6" stroke-width="2" />
+            <polygon points="690,385 700,390 690,395" fill="#9b59b6" />
+            <rect x="610" y="370" width="40" height="25" fill="#9b59b6" rx="10" ry="10" />
+            <text x="630" y="387" text-anchor="middle" fill="white" font-size="12">1:1</text>
+            
+            <!-- 关系：用户 → 复习记录 (1:N) -->
+            <line x1="170" y1="330" x2="550" y2="570" stroke="#9b59b6" stroke-width="2" />
+            <polygon points="540,565 550,570 540,575" fill="#9b59b6" />
+            <rect x="340" y="430" width="40" height="25" fill="#9b59b6" rx="10" ry="10" />
+            <text x="360" y="447" text-anchor="middle" fill="white" font-size="12">1:N</text>
+            
+            <!-- 关系：英语学习 → 复习记录 (1:N) -->
+            <line x1="470" y1="430" x2="580" y2="550" stroke="#9b59b6" stroke-width="2" />
+            <polygon points="570,545 580,550 570,555" fill="#9b59b6" />
+            <rect x="510" y="480" width="40" height="25" fill="#9b59b6" rx="10" ry="10" />
+            <text x="530" y="497" text-anchor="middle" fill="white" font-size="12">1:N</text>
+            
+            <!-- 关系：用户 → AI阅读理解 (1:N) -->
+            <line x1="170" y1="330" x2="280" y2="550" stroke="#9b59b6" stroke-width="2" />
+            <polygon points="270,545 280,550 270,555" fill="#9b59b6" />
+            <rect x="210" y="430" width="40" height="25" fill="#9b59b6" rx="10" ry="10" />
+            <text x="230" y="447" text-anchor="middle" fill="white" font-size="12">1:N</text>
+            
+            <!-- 用户属性 -->
+            <circle cx="70" cy="210" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="70" y="215" text-anchor="middle" fill="#3498db" font-size="12">用户ID</text>
+            <line x1="70" y1="235" x2="100" y2="250" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="170" cy="180" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="170" y="185" text-anchor="middle" fill="#3498db" font-size="12">用户名</text>
+            <line x1="170" y1="205" x2="170" y2="250" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="270" cy="210" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="270" y="215" text-anchor="middle" fill="#3498db" font-size="12">密码</text>
+            <line x1="270" y1="235" x2="240" y2="250" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="70" cy="290" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="70" y="295" text-anchor="middle" fill="#3498db" font-size="12">邮箱</text>
+            <line x1="70" y1="265" x2="100" y2="280" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="270" cy="290" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="270" y="295" text-anchor="middle" fill="#3498db" font-size="12">角色</text>
+            <line x1="270" y1="265" x2="240" y2="280" stroke="#3498db" stroke-width="1.5" />
+            
+            <!-- 视频合集属性 -->
+            <circle cx="350" cy="50" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="350" y="55" text-anchor="middle" fill="#3498db" font-size="12">合集ID</text>
+            <line x1="350" y1="75" x2="400" y2="100" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="470" cy="30" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="470" y="35" text-anchor="middle" fill="#3498db" font-size="12">合集标题</text>
+            <line x1="470" y1="55" x2="470" y2="100" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="590" cy="50" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="590" y="55" text-anchor="middle" fill="#3498db" font-size="12">教师ID</text>
+            <line x1="590" y1="75" x2="540" y2="100" stroke="#3498db" stroke-width="1.5" />
+            
+            <!-- 视频属性 -->
+            <circle cx="650" cy="50" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="650" y="55" text-anchor="middle" fill="#3498db" font-size="12">视频ID</text>
+            <line x1="650" y1="75" x2="700" y2="100" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="770" cy="30" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="770" y="35" text-anchor="middle" fill="#3498db" font-size="12">视频标题</text>
+            <line x1="770" y1="55" x2="770" y2="100" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="890" cy="50" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="890" y="55" text-anchor="middle" fill="#3498db" font-size="12">视频URL</text>
+            <line x1="890" y1="75" x2="840" y2="100" stroke="#3498db" stroke-width="1.5" />
+            
+            <!-- 英语学习属性 -->
+            <circle cx="350" cy="400" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="350" y="405" text-anchor="middle" fill="#3498db" font-size="12">英语ID</text>
+            <line x1="350" y1="375" x2="400" y2="390" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="470" cy="450" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="470" y="455" text-anchor="middle" fill="#3498db" font-size="12">英语单词</text>
+            <line x1="470" y1="425" x2="470" y2="430" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="590" cy="400" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="590" y="405" text-anchor="middle" fill="#3498db" font-size="12">中文翻译</text>
+            <line x1="590" y1="375" x2="540" y2="390" stroke="#3498db" stroke-width="1.5" />
+            
+            <!-- 复习状态属性 -->
+            <circle cx="650" cy="400" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="650" y="405" text-anchor="middle" fill="#3498db" font-size="12">状态ID</text>
+            <line x1="650" y1="375" x2="700" y2="390" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="770" cy="450" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="770" y="455" text-anchor="middle" fill="#3498db" font-size="12">复习次数</text>
+            <line x1="770" y1="425" x2="770" y2="430" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="890" cy="400" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="890" y="405" text-anchor="middle" fill="#3498db" font-size="12">熟悉度</text>
+            <line x1="890" y1="375" x2="840" y2="390" stroke="#3498db" stroke-width="1.5" />
+            
+            <!-- 复习记录属性 -->
+            <circle cx="550" cy="630" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="550" y="635" text-anchor="middle" fill="#3498db" font-size="12">记录ID</text>
+            <line x1="550" y1="605" x2="550" y2="630" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="650" cy="630" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="650" y="635" text-anchor="middle" fill="#3498db" font-size="12">复习时间</text>
+            <line x1="650" y1="605" x2="620" y2="630" stroke="#3498db" stroke-width="1.5" />
+            
+            <!-- AI阅读理解属性 -->
+            <circle cx="250" cy="630" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="250" y="635" text-anchor="middle" fill="#3498db" font-size="12">阅读ID</text>
+            <line x1="250" y1="605" x2="280" y2="630" stroke="#3498db" stroke-width="1.5" />
+            
+            <circle cx="350" cy="630" r="25" fill="#e8f4fc" stroke="#3498db" stroke-width="2" />
+            <text x="350" y="635" text-anchor="middle" fill="#3498db" font-size="12">阅读内容</text>
+            <line x1="350" y1="605" x2="320" y2="630" stroke="#3498db" stroke-width="1.5" />
+        </svg>
+    </div>
+
+    <div class="entity-details">
+        <h2>实体详细定义</h2>
+
+        <div class="entity-title">用户 (User)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">用户ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>用户唯一标识符</td>
+            </tr>
+            <tr>
+                <td>用户名</td>
+                <td>username</td>
+                <td>VARCHAR(50)</td>
+                <td>非空, 唯一</td>
+                <td>用户登录名</td>
+            </tr>
+            <tr>
+                <td>密码</td>
+                <td>password</td>
+                <td>VARCHAR(100)</td>
+                <td>非空</td>
+                <td>加密存储的密码</td>
+            </tr>
+            <tr>
+                <td>邮箱</td>
+                <td>email</td>
+                <td>VARCHAR(100)</td>
+                <td>唯一</td>
+                <td>用户邮箱地址</td>
+            </tr>
+            <tr>
+                <td>角色</td>
+                <td>role</td>
+                <td>VARCHAR(20)</td>
+                <td>非空</td>
+                <td>用户角色: STUDENT/TEACHER/ADMIN</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+
+        <div class="entity-title">视频合集 (Album)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">合集ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>合集唯一标识符</td>
+            </tr>
+            <tr>
+                <td>合集标题</td>
+                <td>title</td>
+                <td>VARCHAR(100)</td>
+                <td>非空</td>
+                <td>合集名称</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">教师ID</td>
+                <td>teacher_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键</td>
+                <td>关联User表的id</td>
+            </tr>
+            <tr>
+                <td>封面URL</td>
+                <td>cover_url</td>
+                <td>VARCHAR(255)</td>
+                <td></td>
+                <td>合集封面图片URL</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+
+        <div class="entity-title">视频 (Video)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">视频ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>视频唯一标识符</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">合集ID</td>
+                <td>album_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键</td>
+                <td>关联Album表的id</td>
+            </tr>
+            <tr>
+                <td>视频标题</td>
+                <td>title</td>
+                <td>VARCHAR(100)</td>
+                <td>非空</td>
+                <td>视频名称</td>
+            </tr>
+            <tr>
+                <td>视频URL</td>
+                <td>video_url</td>
+                <td>VARCHAR(255)</td>
+                <td>非空</td>
+                <td>视频文件URL</td>
+            </tr>
+            <tr>
+                <td>封面URL</td>
+                <td>cover_url</td>
+                <td>VARCHAR(255)</td>
+                <td></td>
+                <td>视频封面图片URL</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+
+        <div class="entity-title">英语学习 (English)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">英语ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>英语学习记录唯一标识符</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">用户ID</td>
+                <td>user_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键</td>
+                <td>关联User表的id</td>
+            </tr>
+            <tr>
+                <td>英语单词</td>
+                <td>word</td>
+                <td>VARCHAR(100)</td>
+                <td>非空</td>
+                <td>英语单词</td>
+            </tr>
+            <tr>
+                <td>中文翻译</td>
+                <td>translation</td>
+                <td>VARCHAR(255)</td>
+                <td>非空</td>
+                <td>单词中文翻译</td>
+            </tr>
+            <tr>
+                <td>难度级别</td>
+                <td>level</td>
+                <td>INT</td>
+                <td></td>
+                <td>单词难度等级</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+
+        <div class="entity-title">复习状态 (ReviewState)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">状态ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>复习状态唯一标识符</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">英语ID</td>
+                <td>eg_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键, 唯一</td>
+                <td>关联English表的id</td>
+            </tr>
+            <tr>
+                <td>复习次数</td>
+                <td>review_count</td>
+                <td>INT</td>
+                <td>默认值: 0</td>
+                <td>已复习次数</td>
+            </tr>
+            <tr>
+                <td>下次复习时间</td>
+                <td>next_review_time</td>
+                <td>DATETIME</td>
+                <td></td>
+                <td>计划下次复习时间</td>
+            </tr>
+            <tr>
+                <td>熟悉度</td>
+                <td>familiarity</td>
+                <td>INT</td>
+                <td>默认值: 0</td>
+                <td>单词熟悉程度</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+
+        <div class="entity-title">复习记录 (ReviewLog)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">记录ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>复习记录唯一标识符</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">英语ID</td>
+                <td>eg_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键</td>
+                <td>关联English表的id</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">用户ID</td>
+                <td>user_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键</td>
+                <td>关联User表的id</td>
+            </tr>
+            <tr>
+                <td>复习时间</td>
+                <td>review_time</td>
+                <td>DATETIME</td>
+                <td>非空</td>
+                <td>复习的时间</td>
+            </tr>
+            <tr>
+                <td>复习结果</td>
+                <td>result</td>
+                <td>INT</td>
+                <td></td>
+                <td>复习结果评分</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+
+        <div class="entity-title">AI阅读理解 (AIReading)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">阅读ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>阅读记录唯一标识符</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">用户ID</td>
+                <td>user_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键</td>
+                <td>关联User表的id</td>
+            </tr>
+            <tr>
+                <td>阅读内容</td>
+                <td>content</td>
+                <td>TEXT</td>
+                <td>非空</td>
+                <td>阅读文章内容</td>
+            </tr>
+            <tr>
+                <td>问题</td>
+                <td>question</td>
+                <td>TEXT</td>
+                <td></td>
+                <td>AI生成的问题</td>
+            </tr>
+            <tr>
+                <td>回答</td>
+                <td>answer</td>
+                <td>TEXT</td>
+                <td></td>
+                <td>用户的回答</td>
+            </tr>
+            <tr>
+                <td>评分</td>
+                <td>score</td>
+                <td>INT</td>
+                <td></td>
+                <td>AI评分结果</td>
+            </tr>
+            <tr>
+                <td>阅读时间</td>
+                <td>read_time</td>
+                <td>DATETIME</td>
+                <td>非空</td>
+                <td>阅读的时间</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 <template>
     <div class="course-list">
-        <el-page-header content="查看课程" icon="null" class="header" />
+        <el-page-header content="视频合集" icon="null" class="header" />
 
         <!-- 骨架屏 -->
         <el-skeleton v-if="loading" animated :count="4">

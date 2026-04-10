@@ -7,7 +7,6 @@ const service = axios.create({
 })
 
 export const get = <T = any>(url: string, params?: any): Promise<AxiosResponse<T>> => {
-  console.log(import.meta.env.VITE_API_URL, url, 66666666666666)
   return service.get<T>(url, { params })
 }
 

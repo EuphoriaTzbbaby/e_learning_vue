@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>E-Learning系统概要设计文档</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 25px;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+        h3 {
+            color: #3498db;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .architecture-diagram {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .code-block {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .note {
+            background-color: #fffacd;
+            border-left: 4px solid #ffcc00;
+            padding: 10px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>E-Learning系统概要设计文档</h1>
+    
+    <h2>1. 文档概述</h2>
+    <p>本文档描述了E-Learning系统的概要设计，包括软件架构设计、软件结构设计和数据库设计。系统前端基于Vue 3 + TypeScript + Element Plus，后端基于SpringBoot框架实现。</p>
+    
+    <h3>1.1 设计目标</h3>
+    <p>设计一个功能完善、性能稳定、可扩展的在线学习平台，支持课程管理、英语学习游戏、AI阅读理解等功能，为用户提供良好的学习体验。</p>
+    
+    <h3>1.2 适用范围</h3>
+    <p>本文档适用于开发团队、测试团队和项目管理人员，作为系统开发和维护的指导性文档。</p>
+    
+    <h2>2. 软件架构设计</h2>
+    
+    <h3>2.1 总体架构</h3>
+    <div class="architecture-diagram">
+        <pre>
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│                 │      │                 │      │                 │
+│  前端应用层     │      │  后端服务层     │      │  数据持久层     │
+│  Vue 3 + TS     │◄────►│  SpringBoot     │◄────►│  MySQL/Redis    │
+│                 │      │                 │      │                 │
+└─────────────────┘      └─────────────────┘      └─────────────────┘
+        ▲                        ▲                        ▲
+        │                        │                        │
+        ▼                        ▼                        ▼
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│                 │      │                 │      │                 │
+│  UI组件库       │      │  外部服务集成   │      │  缓存服务       │
+│  Element Plus   │      │  AI API等       │      │  Redis          │
+│                 │      │                 │      │                 │
+└─────────────────┘      └─────────────────┘      └─────────────────┘
+        </pre>
+    </div>
+    
+    <h3>2.2 技术架构</h3>
+    <ul>
+        <li><strong>前端</strong>：Vue 3、TypeScript、Element Plus、Vite</li>
+        <li><strong>后端</strong>：SpringBoot 2.7.x、Spring MVC、Spring Data JPA</li>
+        <li><strong>数据库</strong>：MySQL 8.0</li>
+        <li><strong>缓存</strong>：Redis</li>
+        <li><strong>API文档</strong>：Swagger/OpenAPI</li>
+        <li><strong>安全框架</strong>：Spring Security + JWT</li>
+        <li><strong>构建工具</strong>：Maven（后端）、npm/pnpm（前端）</li>
+        <li><strong>部署</strong>：Docker容器化</li>
+    </ul>
+    
+    <h3>2.3 系统分层</h3>
+    <table>
+        <tr>
+            <th>层次</th>
+            <th>职责</th>
+            <th>主要组件</th>
+        </tr>
+        <tr>
+            <td>表示层</td>
+            <td>用户界面和交互</td>
+            <td>Vue组件、路由、状态管理</td>
+        </tr>
+        <tr>
+            <td>应用层</td>
+            <td>业务流程和应用逻辑</td>
+            <td>Controller、Service</td>
+        </tr>
+        <tr>
+            <td>领域层</td>
+            <td>业务规则和领域模型</td>
+            <td>Entity、Domain Service</td>
+        </tr>
+        <tr>
+            <td>基础设施层</td>
+            <td>技术实现和外部服务集成</td>
+            <td>Repository、外部API客户端</td>
+        </tr>
+    </table>
+    
+    <h2>3. 软件结构设计</h2>
+    
+    <h3>3.1 前端结构</h3>
+    <p>前端采用基于组件的结构设计，主要包括以下模块：</p>
+    <ul>
+        <li><strong>布局组件</strong>：StudentLayout、TeacherLayout、AdminLayout</li>
+        <li><strong>视图组件</strong>：CourseList、EnglishGamePro、Wordle、AiReading等</li>
+        <li><strong>公共组件</strong>：Navbar、VideoPlayer等</li>
+        <li><strong>API服务</strong>：各模块API调用封装</li>
+        <li><strong>工具类</strong>：axios封装、单词加载器、SM5算法等</li>
+    </ul>
+    
+    <h3>3.2 后端结构（SpringBoot）</h3>
+    <div class="code-block">
+        <pre>
+com.elearning
+  ├── ELearningApplication.java
+  ├── config/                 # 配置类
+  │   ├── SecurityConfig.java
+  │   ├── RedisConfig.java
+  │   ├── SwaggerConfig.java
+  │   └── WebMvcConfig.java
+  ├── controller/             # 控制器
+  │   ├── UserController.java
+  │   ├── CourseController.java
+  │   ├── VideoController.java
+  │   ├── EnglishController.java
+  │   ├── ReviewController.java
+  │   └── AiReadingController.java
+  ├── service/                # 服务层
+  │   ├── impl/               # 服务实现
+  │   ├── UserService.java
+  │   ├── CourseService.java
+  │   ├── VideoService.java
+  │   ├── EnglishService.java
+  │   ├── ReviewService.java
+  │   └── AiService.java
+  ├── repository/             # 数据访问层
+  │   ├── UserRepository.java
+  │   ├── CourseRepository.java
+  │   ├── VideoRepository.java
+  │   ├── EnglishRepository.java
+  │   └── ReviewRepository.java
+  ├── model/                  # 实体类
+  │   ├── entity/             # 数据库实体
+  │   ├── dto/                # 数据传输对象
+  │   └── vo/                 # 视图对象
+  ├── common/                 # 公共组件
+  │   ├── exception/          # 异常处理
+  │   ├── util/               # 工具类
+  │   └── constant/           # 常量定义
+  └── integration/            # 外部服务集成
+      ├── ai/                 # AI服务集成
+      └── storage/            # 存储服务集成
+        </pre>
+    </div>
+    
+    <h3>3.3 核心业务模块</h3>
+    <table>
+        <tr>
+            <th>模块名称</th>
+            <th>功能描述</th>
+            <th>关键组件</th>
+        </tr>
+        <tr>
+            <td>用户管理</td>
+            <td>用户注册、登录、权限控制</td>
+            <td>UserController、UserService、UserRepository</td>
+        </tr>
+        <tr>
+            <td>课程管理</td>
+            <td>课程列表、详情、学习进度</td>
+            <td>CourseController、CourseService、VideoAlbumRepository</td>
+        </tr>
+        <tr>
+            <td>视频管理</td>
+            <td>视频上传、播放、分类</td>
+            <td>VideoController、VideoService、VideoRepository</td>
+        </tr>
+        <tr>
+            <td>英语学习</td>
+            <td>单词学习、游戏、复习</td>
+            <td>EnglishController、EnglishService、EnglishRepository</td>
+        </tr>
+        <tr>
+            <td>复习系统</td>
+            <td>间隔复习、学习记录</td>
+            <td>ReviewController、ReviewService、ReviewRepository</td>
+        </tr>
+        <tr>
+            <td>AI阅读</td>
+            <td>AI生成阅读材料、理解测试</td>
+            <td>AiReadingController、AiService、外部AI API集成</td>
+        </tr>
+    </table>
+    
+    <h2>4. 数据库设计</h2>
+    
+    <h3>4.1 ER图</h3>
+    <div class="note">
+        <p>ER图展示了系统主要实体及其关系，包括用户、课程、视频、英语学习和复习记录等。</p>
+    </div>
+    
+    <h3>4.2 数据库表设计</h3>
+    
+    <h4>4.2.1 用户表（users）</h4>
+    <table>
+        <tr>
+            <th>字段名</th>
+            <th>类型</th>
+            <th>约束</th>
+            <th>说明</th>
+        </tr>
+        <tr>
+            <td>id</td>
+            <td>BIGINT</td>
+            <td>PK, AUTO_INCREMENT</td>
+            <td>用户ID</td>
+        </tr>
+        <tr>
+            <td>username</td>
+            <td>VARCHAR(50)</td>
+            <td>NOT NULL, UNIQUE</td>
+            <td>用户名</td>
+        </tr>
+        <tr>
+            <td>password</td>
+            <td>VARCHAR(100)</td>
+            <td>NOT NULL</td>
+            <td>密码（加密存储）</td>
+        </tr>
+        <tr>
+            <td>email</td>
+            <td>VARCHAR(100)</td>
+            <td>UNIQUE</td>
+            <td>邮箱</td>
+        </tr>
+        <tr>
+            <td>role</td>
+            <td>VARCHAR(20)</td>
+            <td>NOT NULL</td>
+            <td>角色（STUDENT/TEACHER/ADMIN）</td>
+        </tr>
+        <tr>
+            <td>avatar</td>
+            <td>VARCHAR(255)</td>
+            <td></td>
+            <td>头像URL</td>
+        </tr>
+        <tr>
+            <td>create_time</td>
+            <td>DATETIME</td>
+            <td>NOT NULL</td>
+            <td>创建时间</td>
+        </tr>
+        <tr>
+            <td>update_time</td>
+            <td>DATETIME</td>
+            <td>NOT NULL</td>
+            <td>更新时间</td>
+        </tr>
+        <tr>
+            <td>is_deleted</td>
+            <td>TINYINT</td>
+            <td>DEFAULT 0</td>
+            <td>是否删除</td>
+        </tr>
+    </table>
+    
+    <h4>4.2.2 视频合集表（video_albums）</h4>
+    <table>
+        <tr>
+            <th>字段名</th>
+            <th>类型</th>
+            <th>约束</th>
+            <th>说明</th>
+        </tr>
+        <tr>
+            <td>id</td>
+            <td>BIGINT</td>
+            <td>PK, AUTO_INCREMENT</td>
+            <td>合集ID</td>
+        </tr>
+        <tr>
+            <td>title</td>
+            <td>VARCHAR(100)</td>
+            <td>NOT NULL</td>
+            <td>合集标题</td>
+        </tr>
+        <tr>
+            <td>description</td>
+            <td>TEXT</td>
+            <td></td>
+            <td>合集描述</td>
+        </tr>
+        <tr>
+            <td>cover_url</td>
+            <td>VARCHAR(255)</td>
+            <td></td>
+            <td>封面图URL</td>
+        </tr>
+        <tr>
+            <td>teacher_id</td>
+            <td>BIGINT</td>
+            <td>FK</td>
+            <td>教师ID</td>
+        </tr>
+        <tr>
+            <td>create_time</td>
+            <td>DATETIME</td>
+            <td>NOT NULL</td>
+            <td>创建时间</td>
+        </tr>
+        <tr>
+            <td>update_time</td>
+            <td>DATETIME</td>
+            <td>NOT NULL</td>
+            <td>更新时间</td>
+        </tr>
+        <tr>
+            <td>is_deleted</td>
+            <td>TINYINT</td>
+            <td>DEFAULT 0</td>
+            <td>是否删除</td>
+        </tr>
+    </table>
+    
+    <h4>4.2.3 视频表（videos）</h4>
+    <table>
+        <tr>
+            <th>字段名</th>
+            <th>类型</th>
+            <th>约束</th>
+            <th>说明</th>
+        </tr>
+        <tr>
+            <td>id</td>
+            <td>BIGINT</td>
+            <td>PK, AUTO_INCREMENT</td>
+            <td>视频ID</td>
+        </tr>
+        <tr>
+            <td>album_id</td>
+            <td>BIGINT</td>
+            <td>FK, NOT NULL</td>
+            <td>所属合集ID</td>
+        </tr>
+        <tr>
+            <td>title</td>
+            <td>VARCHAR(100)</td>
+            <td>NOT NULL</td>
+            <td>视频标题</td>
+        </tr>
+        <tr>
+            <td>video_url</td>
+            <td>VARCHAR(255)</td>
+            <td>NOT NULL</td>
+            <td>视频URL</td>
+        </tr>
+        <tr>
+            <td>oss_key</td>
+            <td>VARCHAR(255)</td>
+            <td></td>
+            <td>OSS存储键</td>
+        </tr>
+        <tr>
+            <td>duration</td>
+            <td>INT</td>
+            <td>DEFAULT 0</td>
+            <td>视频时长（秒）</td>
+        </tr>
+        <tr>
+            <td>sort_order</td>
+            <td>INT</td>
+            <td>DEFAULT 0</td>
+            <td>排序顺序</td>
+        </tr>
+        <tr>
+            <td>create_time</td>
+            <td>DATETIME</td>
+            <td>NOT NULL</td>
+            <td>创建时间</td>
+        </tr>
+        <tr>
+            <td>update_time</td>
+            <td>DATETIME</td>
+            <td>NOT NULL</td>
+            <td>更新时间</td>
+        </tr>
+        <tr>
+            <td>is_deleted</td>
+            <td>TINYINT</td>
+            <td>DEFAULT 0</td>
+            <td>是否删除</td>
+        </tr>
+    </table>
+    
+    <h4>4.2.4 英语学习表（english）</h4>
+    <table>
+        <tr>
+            <th>字段名</th>
+            <th>类型</th>
+            <th>约束</th>
+            <th>说明</th>
+        </tr>
+        <tr>
+            <td>eg_id</td>
+            <td>BIGINT</td>
+            <td>PK, AUTO_INCREMENT</td>
+            <td>英语内容ID</td>
+        </tr>
+        <tr>
+            <td>user_id</td>
+            <td>BIGINT</td>
+            <td>FK, NOT NULL</td>
+            <td>用户ID</td>
+        </tr>
+        <tr>
+            <td>content</td>
+            <td>TEXT</td>
+            <td>NOT NULL</td>
+            <td>英文内容</td>
+        </tr>
+        <tr>
+            <td>core_key</td>
+            <td>VARCHAR(100)</td>
+            <td></td>
+            <td>核心关键词</td>
+        </tr>
+        <tr>
+            <td>translation</td>
+            <td>TEXT</td>
+            <td></td>
+            <td>翻译</td>
+        </tr>
+        <tr>
+            <td>comment</td>
+            <td>VARCHAR(255)</td>
+            <td></td>
+            <td>备注</td>
+        </tr>
+        <tr>
+            <td>is_taboo</td>
+            <td>TINYINT</td>
+            <td>DEFAULT 0</td>
+            <td>是否熟悉</td>
+        </tr>
+        <tr>
+            <td>text_cnt</td>
+            <td>INT</td>
+            <td>DEFAULT 0</td>
+            <td>练习次数</td>
+        </tr>
+        <tr>
+            <td>status</td>
+            <td>VARCHAR(20)</td>
+            <td>DEFAULT 'draft'</td>
+            <td>状态（draft/published）</td>
+        </tr>
+        <tr>
+            <td>create_date</td>
+            <td>DATETIME</td>
+            <td>NOT NULL</td>
+            <td>创建时间</td>
+        </tr>
+        <tr>
+            <td>update_date</td>
+            <td>DATETIME</td>
+            <td>NOT NULL</td>
+            <td>更新时间</td>
+        </tr>
+        <tr>
+            <td>is_deleted</td>
+            <td>TINYINT</td>
+            <td>DEFAULT 0</td>
+            <td>是否删除</td>
+        </tr>
+    </table>
+    
+    <h4>4.2.5 复习状态表（review_state）</h4>
+    <table>
+        <tr>
+            <th>字段名</th>
+            <th>类型</th>
+            <th>约束</th>
+            <th>说明</th>
+        </tr>
+        <tr>
+            <td>id</td>
+            <td>BIGINT</td>
+            <td>PK, AUTO_INCREMENT</td>
+            <td>复习状态ID</td>
+        </tr>
+        <tr>
+            <td>user_id</td>
+            <td>BIGINT</td>
+            <td>FK, NOT NULL</td>
+            <td>用户ID</td>
+        </tr>
+        <tr>
+            <td>eg_id</td>
+            <td>BIGINT</td>
+            <td>FK, NOT NULL</td>
+            <td>英语内容ID</td>
+        </tr>
+        <tr>
+            <td>ef</td>
+            <td>DOUBLE</td>
+            <td>DEFAULT 2.5</td>
+            <td>难度因子</td>
+        </tr>
+        <tr>
+            <td>interval</td>
+            <td>INT</td>
+            <td>DEFAULT 0</td>
+            <td>间隔天数</td>
+        </tr>
+        <tr>
+            <td>repetition</td>
+            <td>INT</td>
+            <td>DEFAULT 0</td>
+            <td>重复次数</td>
+        </tr>
+        <tr>
+            <td>next_review</td>
+            <td>DATE</td>
+            <td>NOT NULL</td>
+            <td>下次复习日期</td>
+        </tr>
+        <tr>
+            <td>create_time</td>
+            <td>DATETIME</td>
+            <td>NOT NULL</td>
+            <td>创建时间</td>
+        </tr>
+        <tr>
+            <td>update_time</td>
+            <td>DATETIME</td>
+            <td>NOT NULL</td>
+            <td>更新时间</td>
+        </tr>
+    </table>
+    
+    <h4>4.2.6 复习记录表（review_log）</h4>
+    <table>
+        <tr>
+            <th>字段名</th>
+            <th>类型</th>
+            <th>约束</th>
+            <th>说明</th>
+        </tr>
+        <tr>
+            <td>log_id</td>
+            <td>BIGINT</td>
+            <td>PK, AUTO_INCREMENT</td>
+            <td>记录ID</td>
+        </tr>
+        <tr>
+            <td>user_id</td>
+            <td>BIGINT</td>
+            <td>FK, NOT NULL</td>
+            <td>用户ID</td>
+        </tr>
+        <tr>
+            <td>eg_id</td>
+            <td>BIGINT</td>
+            <td>FK, NOT NULL</td>
+            <td>英语内容ID</td>
+        </tr>
+        <tr>
+            <td>score</td>
+            <td>INT</td>
+            <td>NOT NULL</td>
+            <td>评分（0-5）</td>
+        </tr>
+        <tr>
+            <td>last_review</td>
+            <td>DATETIME</td>
+            <td>NOT NULL</td>
+            <td>复习时间</td>
+        </tr>
+    </table>
+    
+    <h4>4.2.7 AI阅读表（ai_reading）</h4>
+    <table>
+        <tr>
+            <th>字段名</th>
+            <th>类型</th>
+            <th>约束</th>
+            <th>说明</th>
+        </tr>
+        <tr>
+            <td>id</td>
+            <td>BIGINT</td>
+            <td>PK, AUTO_INCREMENT</td>
+            <td>阅读ID</td>
+        </tr>
+        <tr>
+            <td>user_id</td>
+            <td>BIGINT</td>
+            <td>FK, NOT NULL</td>
+            <td>用户ID</td>
+        </tr>
+        <tr>
+            <td>title</td>
+            <td>VARCHAR(255)</td>
+            <td>NOT NULL</td>
+            <td>阅读标题</td>
+        </tr>
+        <tr>
+            <td>prompt</td>
+            <td>TEXT</td>
+            <td>NOT NULL</td>
+            <td>生成提示词</td>
+        </tr>
+        <tr>
+            <td>content</td>
+            <td>TEXT</td>
+            <td>NOT NULL</td>
+            <td>AI生成内容</td>
+        </tr>
+        <tr>
+            <td>create_time</td>
+            <td>DATETIME</td>
+            <td>NOT NULL</td>
+            <td>创建时间</td>
+        </tr>
+        <tr>
+            <td>is_deleted</td>
+            <td>TINYINT</td>
+            <td>DEFAULT 0</td>
+            <td>是否删除</td>
+        </tr>
+    </table>
+    
+    <h3>4.3 数据库索引设计</h3>
+    <table>
+        <tr>
+            <th>表名</th>
+            <th>索引名</th>
+            <th>索引字段</th>
+            <th>索引类型</th>
+            <th>说明</th>
+        </tr>
+        <tr>
+            <td>users</td>
+            <td>idx_username</td>
+            <td>username</td>
+            <td>UNIQUE</td>
+            <td>用户名唯一索引</td>
+        </tr>
+        <tr>
+            <td>users</td>
+            <td>idx_email</td>
+            <td>email</td>
+            <td>UNIQUE</td>
+            <td>邮箱唯一索引</td>
+        </tr>
+        <tr>
+            <td>video_albums</td>
+            <td>idx_teacher_id</td>
+            <td>teacher_id</td>
+            <td>NORMAL</td>
+            <td>教师ID索引</td>
+        </tr>
+        <tr>
+            <td>videos</td>
+            <td>idx_album_id</td>
+            <td>album_id</td>
+            <td>NORMAL</td>
+            <td>合集ID索引</td>
+        </tr>
+        <tr>
+            <td>english</td>
+            <td>idx_user_id</td>
+            <td>user_id</td>
+            <td>NORMAL</td>
+            <td>用户ID索引</td>
+        </tr>
+        <tr>
+            <td>english</td>
+            <td>idx_core_key</td>
+            <td>core_key</td>
+            <td>NORMAL</td>
+            <td>关键词索引</td>
+        </tr>
+        <tr>
+            <td>review_state</td>
+            <td>idx_user_eg</td>
+            <td>user_id, eg_id</td>
+            <td>UNIQUE</td>
+            <td>用户和英语内容联合唯一索引</td>
+        </tr>
+        <tr>
+            <td>review_state</td>
+            <td>idx_next_review</td>
+            <td>next_review</td>
+            <td>NORMAL</td>
+            <td>下次复习日期索引</td>
+        </tr>
+        <tr>
+            <td>review_log</td>
+            <td>idx_user_id</td>
+            <td>user_id</td>
+            <td>NORMAL</td>
+            <td>用户ID索引</td>
+        </tr>
+        <tr>
+            <td>review_log</td>
+            <td>idx_last_review</td>
+            <td>last_review</td>
+            <td>NORMAL</td>
+            <td>复习时间索引</td>
+        </tr>
+    </table>
+    
+    <h2>5. 接口设计</h2>
+    
+    <h3>5.1 RESTful API设计原则</h3>
+    <ul>
+        <li>使用HTTP方法表示操作类型：GET（查询）、POST（创建）、PUT（更新）、DELETE（删除）</li>
+        <li>使用URL表示资源，使用HTTP状态码表示结果</li>
+        <li>返回JSON格式数据，包含状态码、消息和数据</li>
+        <li>API版本控制：在URL中包含版本号，如/api/v1/users</li>
+        <li>分页查询：使用page和size参数</li>
+        <li>排序：使用sort参数，如sort=name,asc</li>
+        <li>过滤：使用查询参数，如status=active</li>
+    </ul>
+    
+    <h3>5.2 核心API示例</h3>
+    
+    <h4>5.2.1 用户管理API</h4>
+    <div class="code-block">
+        <pre>
+// 用户注册
+POST /api/v1/auth/register
+Request: { "username": "string", "password": "string", "email": "string" }
+Response: { "code": 200, "message": "success", "data": { "id": 1, "username": "string", "token": "string" } }
+
+// 用户登录
+POST /api/v1/auth/login
+Request: { "username": "string", "password": "string" }
+Response: { "code": 200, "message": "success", "data": { "id": 1, "username": "string", "token": "string", "role": "string" } }
+
+// 获取用户信息
+GET /api/v1/users/{id}
+Response: { "code": 200, "message": "success", "data": { "id": 1, "username": "string", "email": "string", "role": "string", "avatar": "string" } }
+
+// 更新用户信息
+PUT /api/v1/users/{id}
+Request: { "email": "string", "avatar": "string" }
+Response: { "code": 200, "message": "success", "data": { "id": 1, "username": "string", "email": "string", "avatar": "string" } }
+        </pre>
+    </div>
+    
+    <h4>5.2.2 课程管理API</h4>
+    <div class="code-block">
+        <pre>
+// 获取所有课程合集
+GET /api/v1/albums
+Response: { "code": 200, "message": "success", "data": [{ "id": 1, "title": "string", "description": "string", "coverUrl": "string", "teacherId": 1 }] }
+
+// 获取课程合集详情
+GET /api/v1/albums/{id}
+Response: { "code": 200, "message": "success", "data": { "id": 1, "title": "string", "description": "string", "coverUrl": "string", "teacherId": 1, "videos": [] } }
+
+// 创建课程合集（教师）
+POST /api/v1/albums
+Request: { "title": "string", "description": "string", "coverUrl": "string" }
+Response: { "code": 200, "message": "success", "data": { "id": 1, "title": "string", "description": "string", "coverUrl": "string", "teacherId": 1 } }
+
+// 获取教师的所有课程合集
+GET /api/v1/teachers/{teacherId}/albums
+Response: { "code": 200, "message": "success", "data": [{ "id": 1, "title": "string", "description": "string", "coverUrl": "string", "teacherId": 1 }] }
+        </pre>
+    </div>
+    
+    <h4>5.2.3 视频管理API</h4>
+    <div class="code-block">
+        <pre>
+// 获取合集下的所有视频
+GET /api/v1/albums/{albumId}/videos
+Response: { "code": 200, "message": "success", "data": [{ "id": 1, "albumId": 1, "title": "string", "videoUrl": "string", "duration": 0, "sortOrder": 0 }] }
+
+// 获取视频详情
+GET /api/v1/videos/{id}
+Response: { "code": 200, "message": "success", "data": { "id": 1, "albumId": 1, "title": "string", "videoUrl": "string", "duration": 0, "sortOrder": 0 } }
+
+// 上传视频（教师）
+POST /api/v1/videos
+Request: { "albumId": 1, "title": "string", "videoUrl": "string", "duration": 0, "sortOrder": 0 }
+Response: { "code": 200, "message": "success", "data": { "id": 1, "albumId": 1, "title": "string", "videoUrl": "string", "duration": 0, "sortOrder": 0 } }
+
+// 更新视频信息（教师）
+PUT /api/v1/videos/{id}
+Request: { "title": "string", "sortOrder": 0 }
+Response: { "code": 200, "message": "success", "data": { "id": 1, "albumId": 1, "title": "string", "videoUrl": "string", "duration": 0, "sortOrder": 0 } }
+        </pre>
+    </div>
+    
+    <h4>5.2.4 英语学习API</h4>
+    <div class="code-block">
+        <pre>
+// 获取用户的所有英语内容
+GET /api/v1/english
+Response: { "code": 200, "message": "success", "data": [{ "egId": 1, "userId": 1, "content": "string", "coreKey": "string", "translation": "string", "isTaboo": 0, "textCnt": 0 }] }
+
+// 获取英语内容详情
+GET /api/v1/english/{id}
+Response: { "code": 200, "message": "success", "data": { "egId": 1, "userId": 1, "content": "string", "coreKey": "string", "translation": "string", "isTaboo": 0, "textCnt": 0 } }
+
+// 添加英语内容
+POST /api/v1/english
+Request: { "content": "string", "coreKey": "string", "translation": "string", "comment": "string" }
+Response: { "code": 200, "message": "success", "data": { "egId": 1, "userId": 1, "content": "string", "coreKey": "string", "translation": "string", "isTaboo": 0, "textCnt": 0 } }
+
+// 更新英语内容
+PUT /api/v1/english/{id}
+Request: { "content": "string", "coreKey": "string", "translation": "string", "isTaboo": 1 }
+Response: { "code": 200, "message": "success", "data": { "egId": 1, "userId": 1, "content": "string", "coreKey": "string", "translation": "string", "isTaboo": 1, "textCnt": 0 } }
+
+// 根据ID批量获取英语内容
+POST /api/v1/english/batch
+Request: { "ids": [1, 2, 3] }
+Response: { "code": 200, "message": "success", "data": [{ "egId": 1, "userId": 1, "content": "string", "coreKey": "string", "translation": "string" }] }
+        </pre>
+    </div>
+    
+    <h4>5.2.5 复习系统API</h4>
+    <div class="code-block">
+        <pre>
+// 获取用户待复习内容
+GET /api/v1/reviews
+Response: { "code": 200, "message": "success", "data": [{ "id": 1, "userId": 1, "egId": 1, "ef": 2.5, "interval": 1, "repetition": 0, "nextReview": "2023-05-01", "english": { "egId": 1, "content": "string", "translation": "string" } }] }
+
+// 提交复习评分
+POST /api/v1/reviews/log
+Request: { "egId": 1, "score": 5 }
+Response: { "code": 200, "message": "success", "data": { "logId": 1, "userId": 1, "egId": 1, "score": 5, "lastReview": "2023-05-01 12:00:00" } }
+
+// 获取用户复习记录
+GET /api/v1/reviews/logs
+Response: { "code": 200, "message": "success", "data": [{ "logId": 1, "userId": 1, "egId": 1, "score": 5, "lastReview": "2023-05-01 12:00:00", "word": "string", "meaning": "string" }] }
+
+// 获取用户某日复习记录
+GET /api/v1/reviews/logs/daily?date=2023-05-01
+Response: { "code": 200, "message": "success", "data": [{ "logId": 1, "userId": 1, "egId": 1, "score": 5, "lastReview": "2023-05-01 12:00:00", "word": "string", "meaning": "string" }] }
+        </pre>
+    </div>
+    
+    <h4>5.2.6 AI阅读API</h4>
+    <div class="code-block">
+        <pre>
+// 生成AI阅读内容
+POST /api/v1/ai/reading
+Request: { "prompt": "string", "title": "string" }
+Response: { "code": 200, "message": "success", "data": { "id": 1, "content": "string" } }
+
+// 获取用户的AI阅读历史
+GET /api/v1/ai/reading/history
+Response: { "code": 200, "message": "success", "data": [{ "id": 1, "title": "string", "prompt": "string", "createTime": "2023-05-01 12:00:00" }] }
+
+// 获取AI阅读详情
+GET /api/v1/ai/reading/{id}
+Response: { "code": 200, "message": "success", "data": { "id": 1, "title": "string", "prompt": "string", "content": "string", "createTime": "2023-05-01 12:00:00" } }
+        </pre>
+    </div>
+    
+    <h2>6. 安全设计</h2>
+    
+    <h3>6.1 认证与授权</h3>
+    <ul>
+        <li>基于JWT的无状态认证</li>
+        <li>基于角色的访问控制（RBAC）</li>
+        <li>密码加密存储（BCrypt）</li>
+        <li>Token过期机制</li>
+    </ul>
+    
+    <h3>6.2 数据安全</h3>
+    <ul>
+        <li>HTTPS传输加密</li>
+        <li>敏感数据加密存储</li>
+        <li>SQL注入防护</li>
+        <li>XSS防护</li>
+        <li>CSRF防护</li>
+    </ul>
+    
+    <h2>7. 部署架构</h2>
+    
+    <h3>7.1 开发环境</h3>
+    <ul>
+        <li>前端：本地开发服务器（Vite）</li>
+        <li>后端：本地SpringBoot应用</li>
+        <li>数据库：本地MySQL</li>
+    </ul>
+    
+    <h3>7.2 生产环境</h3>
+    <ul>
+        <li>前端：Nginx静态资源服务器</li>
+        <li>后端：Docker容器化部署</li>
+        <li>数据库：MySQL主从复制</li>
+        <li>缓存：Redis集群</li>
+        <li>负载均衡：Nginx</li>
+    </ul>
+    
+    <h2>8. 性能优化</h2>
+    
+    <h3>8.1 前端优化</h3>
+    <ul>
+        <li>路由懒加载</li>
+        <li>组件按需加载</li>
+        <li>静态资源CDN加速</li>
+        <li>图片懒加载</li>
+        <li>骨架屏提升体验</li>
+    </ul>
+    
+    <h3>8.2 后端优化</h3>
+    <ul>
+        <li>数据库索引优化</li>
+        <li>查询缓存（Redis）</li>
+        <li>分页查询</li>
+        <li>异步处理耗时操作</li>
+        <li>连接池优化</li>
+    </ul>
+    
+    <h2>9. 扩展性设计</h2>
+    
+    <h3>9.1 水平扩展</h3>
+    <ul>
+        <li>无状态服务设计</li>
+        <li>分布式会话</li>
+        <li>负载均衡</li>
+    </ul>
+    
+    <h3>9.2 垂直扩展</h3>
+    <ul>
+        <li>微服务架构预留</li>
+        <li>模块化设计</li>
+        <li>接口版本控制</li>
+    </ul>
+    
+    <h2>10. 总结</h2>
+    <p>本文档详细描述了E-Learning系统的概要设计，包括软件架构设计、软件结构设计和数据库设计。系统采用前后端分离架构，前端基于Vue 3 + TypeScript + Element Plus，后端基于SpringBoot框架实现，数据库使用MySQL。系统设计遵循了模块化、可扩展、高性能的原则，为用户提供了良好的学习体验。</p>
+</body>
+</html>

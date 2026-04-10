@@ -27,13 +27,14 @@ const getDeepSeekResponse = async (message: string, systemPrompt?: string): Prom
     const response = await deepSeekApi.getDeepSeekResponse({ message, systemPrompt });
     
     if (response.data?.success && response.data?.data) {
-      return response.data;
+      // 仅返回后端响应中的 data 字段（Markdown 文本）
+      return response.data.data as string;
     } else {
       throw new Error(response.data?.error || '请求失败');
     }
   } catch (error: any) {
     console.error('调用AI接口失败:', error);
-    throw new Error(error.response?.error || '网络请求失败');
+    throw new Error(error.response?.data?.error || '网络请求失败');
   }
 };
 
@@ -43,13 +44,13 @@ const testDeepSeekConnection = async (): Promise<string> => {
     const response = await deepSeekApi.testDeepSeekConnection();
     
     if (response.data?.success && response.data?.data) {
-      return response.data;
+      return response.data.data as string;
     } else {
       throw new Error(response.data?.error || '测试失败');
     }
   } catch (error: any) {
     console.error('测试连接失败:', error);
-    throw new Error(error.response?.error || '网络请求失败');
+    throw new Error(error.response?.data?.error || '网络请求失败');
   }
 };
 

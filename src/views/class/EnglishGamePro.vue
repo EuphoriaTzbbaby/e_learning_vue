@@ -92,7 +92,7 @@ import reviewLogApi from '../../api/reviewLog';
 import type { ReviewLog } from '../../interface/reviewLog';
 import type { English } from '../../interface/english';
 import type { ReviewState } from '../../interface/reviewState';
-import { sm5Update } from '../../utils/sm5';
+import { sm2Update } from '../../utils/sm5';
 import dayjs from 'dayjs';
 import { useRouter } from 'vue-router';
 const router = useRouter();
@@ -136,22 +136,29 @@ async function fetchDue() {
   try {
     const res = await reviewApi.getAllReviews(userId);
     const reviews: ReviewStateWithEnglish[] = res?.data ?? [];
+    
     if (!reviews.length) {
       list.value = [];
       return;
     }
-    // 过滤出未完成的复习记录
-    let v = dayjs().format("YYYY-MM-DD HH:mm:ss");
-    console.log(v, reviews[0].nextReview)
-    const unfinishedReviews = reviews.filter((r) => r.nextReview <= v);
+    
+    // 过滤出需要复习的记录（nextReview <= 当前时间）
+    const now = dayjs();
+    const unfinishedReviews = reviews.filter((r) => {
+      if (!r.nextReview) return false;
+      return dayjs(r.nextReview).isBefore(now) || dayjs(r.nextReview).isSame(now, 'second');
+    });
+    
     if (!unfinishedReviews.length) {
       list.value = [];
       return;
     }
+    
+    // 按照下次复习时间排序（最紧急的在前）
     unfinishedReviews.sort((a, b) => {
-      return dayjs(b.nextReview).unix() - dayjs(a.nextReview).unix();
-    })
-    console.log(unfinishedReviews, 0);
+      return dayjs(a.nextReview).unix() - dayjs(b.nextReview).unix();
+    });
+    
     const egIds = unfinishedReviews.map((r) => r.egId);
     const enRes = await englishApi.getEnglishByIds(egIds);
     const enMap = new Map<number, English>();
@@ -164,8 +171,8 @@ async function fetchDue() {
       }
       return { ...r, english };
     });
-    console.log(list.value, 1111);
   } catch (e) {
+    console.error('获取待复习列表失败:', e);
     ElMessage.error('获取待复习列表失败');
   } finally {
     loading.value = false;
@@ -194,8 +201,8 @@ const update = async (reviewState: ReviewState, score: number) => {
   rating.value = true
   try {
     // 1. 使用 SM-5 算法更新复习状态
-    reviewState = sm5Update(reviewState, score)
-
+    reviewState = sm2Update(reviewState, score)
+    console.log(reviewState, 2222)
     // 2. 更新时间
     let v = dayjs();
     reviewState.lastReview = v.format("YYYY-MM-DD HH:mm:ss")

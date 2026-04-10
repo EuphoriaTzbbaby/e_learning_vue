@@ -236,6 +236,7 @@ const fetchLogs = async () => {
       word: englishMap[log.egId]?.content || "未知单词",
       meaning: englishMap[log.egId]?.translation || "暂无释义",
     }));
+    console.log("todayLogs.value", todayLogs.value);
   } catch (error) {
     ElMessage.error("获取复习记录失败");
     console.error(error);

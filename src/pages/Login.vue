@@ -20,9 +20,12 @@
             <option value="" disabled>请选择角色</option>
             <option value="student">学生</option>
             <option value="admin">管理员</option>
-            <option value="teacher">教师</option>
+            <!-- <option value="teacher">教师</option> -->
           </select>
           <button type="submit" class="btn-login">登录</button>
+          <div class="register-link">
+            还没有账号？<router-link to="/register">立即注册</router-link>
+          </div>
         </form>
       </div>
     </div>
@@ -60,6 +63,12 @@
         // 根据后端返回的数据做处理
         console.log('登录结果', res.data)
         if (res.data) {
+          // 检查用户状态
+          if (res.data.state === 1) {
+            alert('登录失败：您的账号已被禁用，请联系管理员')
+            return
+          }
+          
           alert(`登录成功！欢迎用户：${form.email}`)
           localStorage.setItem('user', JSON.stringify(res.data))
           router.push({
@@ -211,6 +220,26 @@
   .btn-login:active {
     background: #3584e4;
     box-shadow: inset 0 3px 5px rgba(0,0,0,0.2);
+  }
+  
+  .register-link {
+    text-align: center;
+    margin-top: 8px;
+    color: #333;
+    font-size: 14px;
+  }
+  
+  .register-link a {
+    color: #409eff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+  }
+  
+  .register-link a:hover {
+    color: #66b1ff;
+    border-bottom-color: #66b1ff;
   }
   </style>
   

@@ -9,6 +9,11 @@
           <el-tag type="success" effect="dark">连胜: {{ streak }}</el-tag>
           <el-tag type="warning" effect="dark">当前难度: {{ difficultyLevel }}</el-tag>
         </div>
+
+        <div class="header-actions">
+          <el-button type="primary" link :icon="DataLine" @click="showStats = true">游戏统计</el-button>
+          <el-button type="success" link :icon="Setting" @click="openLeaderboard">排行榜</el-button>
+        </div>
       </div>
 
       <!-- 游戏控制区 -->
@@ -100,54 +105,66 @@
 
       <!-- 游戏统计弹窗 -->
       <el-dialog v-model="showStats" title="游戏统计" width="500px">
-        <div class="stats-container">
-          <div class="stat-item">
-            <div class="stat-value">{{ gamesPlayed }}</div>
-            <div class="stat-label">游戏次数</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ winRate }}%</div>
-            <div class="stat-label">胜率</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ currentStreak }}</div>
-            <div class="stat-label">当前连胜</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ maxStreak }}</div>
-            <div class="stat-label">最高连胜</div>
-          </div>
-        </div>
-
-        <div class="guess-distribution">
-          <h4>猜测分布</h4>
-          <div v-for="(count, index) in guessDistribution" :key="index" class="guess-bar">
-            <div class="guess-label">{{ index + 1 }}</div>
-            <div class="guess-bar-container">
-              <div
-                class="guess-bar-fill"
-                :style="{ width: `${(count / Math.max(...guessDistribution, 1)) * 100}%` }"
-              ></div>
-            </div>
-            <div class="guess-count">{{ count }}</div>
-          </div>
+        <div class="stats-grid">
+          <el-card shadow="hover" class="stat-card">
+            <template #header>游戏次数</template>
+            <div class="stat-big">{{ gamesPlayed }}</div>
+          </el-card>
+          <el-card shadow="hover" class="stat-card">
+            <template #header>胜率</template>
+            <div class="stat-big">{{ winRate }}%</div>
+          </el-card>
+          <el-card shadow="hover" class="stat-card">
+            <template #header>当前连胜</template>
+            <div class="stat-big">{{ currentStreak }}</div>
+          </el-card>
+          <el-card shadow="hover" class="stat-card">
+            <template #header>最高连胜</template>
+            <div class="stat-big">{{ maxStreak }}</div>
+          </el-card>
         </div>
       </el-dialog>
 
-      <!-- 设置按钮 -->
-      <div class="settings-btn">
-        <el-button circle @click="showStats = true" :icon="DataLine" />
-        <el-button circle @click="showSettings = true" :icon="Setting" />
-      </div>
+      <!-- 排行榜弹窗 -->
+      <el-dialog v-model="showSettings" title="排行榜" width="650px">
+        <el-table
+          :data="leaderboardRows"
+          border
+          stripe
+          style="width: 100%"
+          max-height="520"
+          v-loading="leaderboardLoading"
+        >
+          <el-table-column
+            type="index"
+            label="排名"
+            width="80"
+            align="center"
+            :index="indexMethodLeaderboard"
+          />
+          <el-table-column prop="userId" label="玩家" width="180" align="center" />
+          <el-table-column prop="winRateStr" label="胜率" width="140" align="center" />
+          <el-table-column prop="wins" label="胜利总场数" width="180" align="center" />
+          <el-table-column prop="played" label="总场数" width="130" align="center" />
+        </el-table>
+
+        <template #footer>
+          <el-button @click="showSettings = false">关闭</el-button>
+        </template>
+      </el-dialog>
+
     </el-card>
   </div>
 </template>
 
 <script lang="ts">
+import dayjs from 'dayjs';
 import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { RefreshRight, DataLine, Setting } from '@element-plus/icons-vue';
 import { loadGraduateWords, filterWordsByDifficulty } from '../../utils/wordLoader.ts';
+import gameRecordApi from '../../api/gameRecord';
+import type { GameRecord } from '../../interface/gameRecord';
 
 export default defineComponent({
   name: 'WordleGame',
@@ -166,6 +183,7 @@ export default defineComponent({
     const hintsRemaining = ref(2);
     const showStats = ref(false);
     const showSettings = ref(false);
+    const leaderboardLoading = ref(false);
     const rows = 7;
 
     // IME 处理
@@ -187,6 +205,21 @@ export default defineComponent({
     const currentStreak = ref(0);
     const maxStreak = ref(0);
     const guessDistribution = ref<number[]>([]); // 动态与 rows 对齐
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null;
+    const userId = currentUser?.id as number | undefined;
+
+    type LeaderboardRow = {
+      userId: number;
+      played: number;
+      wins: number;
+      // 展示字段：胜率保留两位小数（字符串）
+      winRateStr: string;
+      // 排序字段：胜率保留两位小数（数值）
+      winRateRounded: number;
+    };
+
+    const leaderboardRows = ref<LeaderboardRow[]>([]);
+    const indexMethodLeaderboard = (i: number) => i + 1;
 
     // 单词列表
     const allWords = ref<Array<{ word: string; meaning: string }>>([]);
@@ -211,6 +244,55 @@ export default defineComponent({
     // 初始化 guessDistribution 与网格
     const resetGuessDistribution = () => {
       guessDistribution.value = Array(rows).fill(0);
+    };
+
+    const loadLeaderboard = async () => {
+      leaderboardLoading.value = true;
+      try {
+        const res = await gameRecordApi.getAllGameRecords();
+        const records = (res.data ?? []) as GameRecord[];
+
+        const statMap = new Map<number, { played: number; wins: number }>();
+        for (const r of records) {
+          const uid = r.userId;
+          const prev = statMap.get(uid) ?? { played: 0, wins: 0 };
+          prev.played += 1;
+          if (r.result === 'win') prev.wins += 1;
+          statMap.set(uid, prev);
+        }
+
+        const list: LeaderboardRow[] = [...statMap.entries()]
+          .map(([uid, s]) => {
+            const winRate = s.played ? (s.wins / s.played) * 100 : 0;
+            const winRateRounded = Math.round(winRate * 100) / 100; // 两位小数
+            return {
+              userId: uid,
+              played: s.played,
+              wins: s.wins,
+              winRateRounded,
+              winRateStr: `${winRateRounded.toFixed(2)}%`,
+            };
+          })
+          .sort((a, b) => {
+            // 胜率高优先；胜率相同则胜利总场数优先
+            if (b.winRateRounded !== a.winRateRounded) return b.winRateRounded - a.winRateRounded;
+            if (b.wins !== a.wins) return b.wins - a.wins;
+            return b.played - a.played;
+          })
+          .slice(0, 10);
+
+        leaderboardRows.value = list;
+      } catch (e) {
+        console.warn('读取排行榜失败', e);
+        leaderboardRows.value = [];
+      } finally {
+        leaderboardLoading.value = false;
+      }
+    };
+
+    const openLeaderboard = async () => {
+      showSettings.value = true;
+      await loadLeaderboard();
     };
 
     const initGameGrid = () => {
@@ -404,7 +486,7 @@ export default defineComponent({
       // 统计猜测分布（以当前行作为索引）
       guessDistribution.value[currentRow.value] = (guessDistribution.value[currentRow.value] || 0) + 1;
       gamesPlayed.value++;
-      saveGameStats();
+      void saveGameRecord('win');
       ElMessage.success('恭喜你猜对了！');
     };
 
@@ -415,7 +497,7 @@ export default defineComponent({
       // 统计失败（放在最后一格位置）
       guessDistribution.value[currentRow.value] = (guessDistribution.value[currentRow.value] || 0) + 1;
       gamesPlayed.value++;
-      saveGameStats();
+      void saveGameRecord('lose');
       ElMessage.error(`游戏结束！答案是: ${targetWord.value}`);
     };
 
@@ -476,33 +558,50 @@ export default defineComponent({
       startNewGame();
     };
 
-    // 保存/加载游戏统计（包含 difficulty）
-    const saveGameStats = () => {
-      const stats = {
-        gamesPlayed: gamesPlayed.value,
-        gamesWon: gamesWon.value,
-        currentStreak: currentStreak.value,
-        maxStreak: maxStreak.value,
-        guessDistribution: guessDistribution.value,
-        difficulty: difficulty.value
-      };
-      localStorage.setItem('wordleStats', JSON.stringify(stats));
+    // 保存/加载游戏统计（改为 gameRecord 后端记录）
+    const applyStatsFromRecords = (records: GameRecord[]) => {
+      const sorted = [...records].sort((a, b) => Date.parse(a.createTime) - Date.parse(b.createTime));
+      gamesPlayed.value = sorted.length;
+      gamesWon.value = sorted.filter(r => r.result === 'win').length;
+
+      let tempCurrentStreak = 0;
+      let tempMaxStreak = 0;
+      for (const r of sorted) {
+        if (r.result === 'win') {
+          tempCurrentStreak++;
+          if (tempCurrentStreak > tempMaxStreak) tempMaxStreak = tempCurrentStreak;
+        } else {
+          tempCurrentStreak = 0;
+        }
+      }
+      currentStreak.value = tempCurrentStreak;
+      maxStreak.value = tempMaxStreak;
     };
 
-    const loadGameStats = () => {
-      const saved = localStorage.getItem('wordleStats');
-      if (!saved) return;
+    const loadGameStats = async () => {
+      if (userId == null) return;
       try {
-        const stats = JSON.parse(saved);
-        gamesPlayed.value = stats.gamesPlayed || 0;
-        gamesWon.value = stats.gamesWon || 0;
-        currentStreak.value = stats.currentStreak || 0;
-        maxStreak.value = stats.maxStreak || 0;
-        guessDistribution.value = stats.guessDistribution || Array(rows).fill(0);
-        // 恢复难度（优先本地 saved，若无再看 localStorage 的单独设置）
-        if (stats.difficulty) difficulty.value = stats.difficulty;
+        const res = await gameRecordApi.getGameRecordsByUserId(userId);
+        const records = (res.data ?? []) as GameRecord[];
+        applyStatsFromRecords(records);
       } catch (e) {
-        console.warn('读取本地统计失败', e);
+        console.warn('读取游戏记录失败', e);
+      }
+    };
+
+    const saveGameRecord = async (result: 'win' | 'lose') => {
+      if (userId == null) return;
+      const payload: Omit<GameRecord, 'recordId'> = {
+        userId,
+        createTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        difficulty: Number(difficulty.value),
+        result
+      };
+      try {
+        await gameRecordApi.addGameRecord(payload);
+        await loadGameStats();
+      } catch (e) {
+        console.warn('保存游戏记录失败', e);
       }
     };
 
@@ -569,7 +668,7 @@ export default defineComponent({
       // 加载单词并统计
       await fetchEnglishList();
       resetGuessDistribution();
-      loadGameStats();
+      await loadGameStats();
       initGameGrid();
 
       // 若有可用单词立即开始游戏
@@ -604,6 +703,9 @@ export default defineComponent({
       currentWordMeaning,
       showStats,
       showSettings,
+      leaderboardLoading,
+      leaderboardRows,
+      indexMethodLeaderboard,
       // UI
       keyboardLayout,
       keyStatus,
@@ -619,6 +721,7 @@ export default defineComponent({
       handleKeyClick,
       startNewGame,
       showHint,
+      openLeaderboard,
       toggleTheme,
       changeDifficulty,
       // icons
@@ -764,24 +867,31 @@ export default defineComponent({
 .game-message { margin-top: 18px; }
 .word-meaning { margin-top: 18px; }
 .meaning-header { display: flex; justify-content: space-between; align-items: center; }
-.settings-btn {
-  position: fixed;
-  bottom: 22px;
-  right: 22px;
+.header-actions {
   display: flex;
-  flex-direction: column;
   gap: 10px;
+  align-items: center;
 }
-.stats-container { display: flex; justify-content: space-around; margin-bottom: 18px; }
-.stat-item { text-align: center; }
-.stat-value { font-size: 22px; font-weight: 700; color: #409eff; }
-.stat-label { font-size: 13px; color: #666; }
-.guess-distribution { margin-top: 12px; }
-.guess-bar { display: flex; align-items: center; margin-bottom: 6px; gap: 8px; }
-.guess-label { width: 22px; text-align: right; font-size: 13px; }
-.guess-bar-container { flex-grow: 1; height: 22px; background-color: #f0f0f0; border-radius: 6px; overflow: hidden; }
-.guess-bar-fill { height: 100%; background-color: #409eff; transition: width 0.5s ease; }
-.guess-count { width: 26px; text-align: left; font-size: 13px; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.stat-card :deep(.el-card__header) {
+  padding: 10px 14px;
+  font-weight: 600;
+  color: #666;
+}
+
+.stat-big {
+  font-size: 28px;
+  font-weight: 800;
+  color: #409eff;
+  text-align: center;
+  padding: 10px 0 14px;
+}
 
 .dark-mode { background-color: #121213; color: #ffffff; }
 .dark-mode .grid-cell { border-color: #3a3a3c; background: #18181a; color: #fff; }

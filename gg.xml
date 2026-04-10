@@ -1,0 +1,183 @@
+<mxfile>
+  <diagram id="1" name="英语学习系统E-R图">
+    <mxGraphModel>
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- 1. 实体：User（用户表） -->
+        <mxCell id="2" value="&lt;b&gt;User（用户表）&lt;/b&gt;&lt;BR&gt;&lt;BR&gt;id（PK，自增）&lt;BR&gt;username（NOT NULL，UNIQUE）&lt;BR&gt;password（NOT NULL，加密）&lt;BR&gt;email（UNIQUE）&lt;BR&gt;role（NOT NULL：STUDENT/TEACHER/ADMIN）&lt;BR&gt;is_deleted（DEFAULT 0）" style="shape=rectangle;fillColor=#f0f8ff;strokeColor=#2c3e50;strokeWidth=2;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="100" width="200" height="180" as="geometry"/>
+        </mxCell>
+        
+        <!-- 2. 实体：Album（视频合集表） -->
+        <mxCell id="3" value="&lt;b&gt;Album（视频合集表）&lt;/b&gt;&lt;BR&gt;&lt;BR&gt;id（PK，自增）&lt;BR&gt;title（NOT NULL）&lt;BR&gt;teacher_id（FK→User.id）&lt;BR&gt;cover_url&lt;BR&gt;is_deleted（DEFAULT 0）" style="shape=rectangle;fillColor=#f0f8ff;strokeColor=#2c3e50;strokeWidth=2;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="100" width="180" height="150" as="geometry"/>
+        </mxCell>
+        
+        <!-- 3. 实体：Video（视频表） -->
+        <mxCell id="4" value="&lt;b&gt;Video（视频表）&lt;/b&gt;&lt;BR&gt;&lt;BR&gt;id（PK，自增）&lt;BR&gt;album_id（FK→Album.id）&lt;BR&gt;title（NOT NULL）&lt;BR&gt;video_url（NOT NULL）&lt;BR&gt;duration（DEFAULT 0）&lt;BR&gt;is_deleted（DEFAULT 0）" style="shape=rectangle;fillColor=#f0f8ff;strokeColor=#2c3e50;strokeWidth=2;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="100" width="180" height="160" as="geometry"/>
+        </mxCell>
+        
+        <!-- 4. 实体：English（英语学习表） -->
+        <mxCell id="5" value="&lt;b&gt;English（英语学习表）&lt;/b&gt;&lt;BR&gt;&lt;BR&gt;eg_id（PK，自增）&lt;BR&gt;user_id（FK→User.id）&lt;BR&gt;content（NOT NULL）&lt;BR&gt;translation&lt;BR&gt;status（DEFAULT 'draft'）&lt;BR&gt;is_deleted（DEFAULT 0）" style="shape=rectangle;fillColor=#f0f8ff;strokeColor=#2c3e50;strokeWidth=2;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="350" width="180" height="160" as="geometry"/>
+        </mxCell>
+        
+        <!-- 5. 实体：ReviewState（复习状态表） -->
+        <mxCell id="6" value="&lt;b&gt;ReviewState（复习状态表）&lt;/b&gt;&lt;BR&gt;&lt;BR&gt;id（PK，自增）&lt;BR&gt;user_id（FK→User.id）&lt;BR&gt;eg_id（FK→English.eg_id）&lt;BR&gt;ef（DEFAULT 2.5）&lt;BR&gt;next_review（NOT NULL）" style="shape=rectangle;fillColor=#f0f8ff;strokeColor=#2c3e50;strokeWidth=2;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="350" y="350" width="190" height="150" as="geometry"/>
+        </mxCell>
+        
+        <!-- 6. 实体：ReviewLog（复习记录表） -->
+        <mxCell id="7" value="&lt;b&gt;ReviewLog（复习记录表）&lt;/b&gt;&lt;BR&gt;&lt;BR&gt;log_id（PK，自增）&lt;BR&gt;user_id（FK→User.id）&lt;BR&gt;eg_id（FK→English.eg_id）&lt;BR&gt;score（NOT NULL：0-5）&lt;BR&gt;last_review（NOT NULL）" style="shape=rectangle;fillColor=#f0f8ff;strokeColor=#2c3e50;strokeWidth=2;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="350" width="190" height="150" as="geometry"/>
+        </mxCell>
+        
+        <!-- 7. 实体：AIReading（AI阅读表） -->
+        <mxCell id="8" value="&lt;b&gt;AIReading（AI阅读表）&lt;/b&gt;&lt;BR&gt;&lt;BR&gt;id（PK，自增）&lt;BR&gt;user_id（FK→User.id）&lt;BR&gt;title（NOT NULL）&lt;BR&gt;prompt（NOT NULL）&lt;BR&gt;content（NOT NULL）&lt;BR&gt;is_deleted（DEFAULT 0）" style="shape=rectangle;fillColor=#f0f8ff;strokeColor=#2c3e50;strokeWidth=2;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="850" y="200" width="180" height="160" as="geometry"/>
+        </mxCell>
+        
+        <!-- 关系1：User → Album（1:N，创建） -->
+        <mxCell id="9" value="&lt;b&gt;创建&lt;/b&gt;" style="shape=diamond;fillColor=#e8f4f8;strokeColor=#2c3e50;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="280" y="120" width="40" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="10" value="" style="shape=connection;strokeColor=#2c3e50;strokeWidth=1.5;startArrow=none;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="100" as="source"/>
+            <mxPoint x="280" y="120" as="target"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="11" value="1" style="shape=label;fillColor=transparent;strokeColor=transparent;fontSize=10;fontWeight=bold;" vertex="1" parent="10">
+          <mxGeometry x="290" y="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="12" value="" style="shape=connection;strokeColor=#2c3e50;strokeWidth=1.5;startArrow=none;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="320" y="140" as="source"/>
+            <mxPoint x="400" y="125" as="target"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="13" value="N" style="shape=label;fillColor=transparent;strokeColor=transparent;fontSize=10;fontWeight=bold;" vertex="1" parent="12">
+          <mxGeometry x="360" y="130" as="geometry"/>
+        </mxCell>
+        
+        <!-- 关系2：Album → Video（1:N，包含） -->
+        <mxCell id="14" value="&lt;b&gt;包含&lt;/b&gt;" style="shape=diamond;fillColor=#e8f4f8;strokeColor=#2c3e50;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="550" y="120" width="40" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="15" value="" style="shape=connection;strokeColor=#2c3e50;strokeWidth=1.5;startArrow=none;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="580" y="100" as="source"/>
+            <mxPoint x="550" y="120" as="target"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="16" value="1" style="shape=label;fillColor=transparent;strokeColor=transparent;fontSize=10;fontWeight=bold;" vertex="1" parent="15">
+          <mxGeometry x="565" y="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="17" value="" style="shape=connection;strokeColor=#2c3e50;strokeWidth=1.5;startArrow=none;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="590" y="140" as="source"/>
+            <mxPoint x="650" y="125" as="target"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="18" value="N" style="shape=label;fillColor=transparent;strokeColor=transparent;fontSize=10;fontWeight=bold;" vertex="1" parent="17">
+          <mxGeometry x="620" y="130" as="geometry"/>
+        </mxCell>
+        
+        <!-- 关系3：User → English（1:N，拥有） -->
+        <mxCell id="19" value="&lt;b&gt;拥有&lt;/b&gt;" style="shape=diamond;fillColor=#e8f4f8;strokeColor=#2c3e50;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="220" y="280" width="40" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="20" value="" style="shape=connection;strokeColor=#2c3e50;strokeWidth=1.5;startArrow=none;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="280" as="source"/>
+            <mxPoint x="220" y="280" as="target"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="21" value="1" style="shape=label;fillColor=transparent;strokeColor=transparent;fontSize=10;fontWeight=bold;" vertex="1" parent="20">
+          <mxGeometry x="205" y="265" as="geometry"/>
+        </mxCell>
+        <mxCell id="22" value="" style="shape=connection;strokeColor=#2c3e50;strokeWidth=1.5;startArrow=none;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="280" as="source"/>
+            <mxPoint x="190" y="350" as="target"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="23" value="N" style="shape=label;fillColor=transparent;strokeColor=transparent;fontSize=10;fontWeight=bold;" vertex="1" parent="22">
+          <mxGeometry x="230" y="310" as="geometry"/>
+        </mxCell>
+        
+        <!-- 关系4：English → ReviewState（1:1，绑定） -->
+        <mxCell id="24" value="&lt;b&gt;绑定&lt;/b&gt;" style="shape=diamond;fillColor=#e8f4f8;strokeColor=#2c3e50;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="270" y="380" width="40" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="25" value="" style="shape=connection;strokeColor=#2c3e50;strokeWidth=1.5;startArrow=none;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="280" y="380" as="source"/>
+            <mxPoint x="270" y="380" as="target"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="26" value="1" style="shape=label;fillColor=transparent;strokeColor=transparent;fontSize=10;fontWeight=bold;" vertex="1" parent="25">
+          <mxGeometry x="260" y="370" as="geometry"/>
+        </mxCell>
+        <mxCell id="27" value="" style="shape=connection;strokeColor=#2c3e50;strokeWidth=1.5;startArrow=none;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="380" as="source"/>
+            <mxPoint x="350" y="380" as="target"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="28" value="1" style="shape=label;fillColor=transparent;strokeColor=transparent;fontSize=10;fontWeight=bold;" vertex="1" parent="27">
+          <mxGeometry x="325" y="370" as="geometry"/>
+        </mxCell>
+        
+        <!-- 关系5：User → AIReading（1:N，生成） -->
+        <mxCell id="29" value="&lt;b&gt;生成&lt;/b&gt;" style="shape=diamond;fillColor=#e8f4f8;strokeColor=#2c3e50;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="600" y="220" width="40" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="30" value="" style="shape=connection;strokeColor=#2c3e50;strokeWidth=1.5;startArrow=none;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="180" as="source"/>
+            <mxPoint x="600" y="220" as="target"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="31" value="1" style="shape=label;fillColor=transparent;strokeColor=transparent;fontSize=10;fontWeight=bold;" vertex="1" parent="30">
+          <mxGeometry x="450" y="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="32" value="" style="shape=connection;strokeColor=#2c3e50;strokeWidth=1.5;startArrow=none;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="640" y="240" as="source"/>
+            <mxPoint x="850" y="230" as="target"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="33" value="N" style="shape=label;fillColor=transparent;strokeColor=transparent;fontSize=10;fontWeight=bold;" vertex="1" parent="32">
+          <mxGeometry x="740" y="220" as="geometry"/>
+        </mxCell>
+        
+        <!-- 关系6：English → ReviewLog（1:N，关联） -->
+        <mxCell id="34" value="&lt;b&gt;关联&lt;/b&gt;" style="shape=diamond;fillColor=#e8f4f8;strokeColor=#2c3e50;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="470" y="380" width="40" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="35" value="" style="shape=connection;strokeColor=#2c3e50;strokeWidth=1.5;startArrow=none;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="280" y="430" as="source"/>
+            <mxPoint x="470" y="380" as="target"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="36" value="1" style="shape=label;fillColor=transparent;strokeColor=transparent;fontSize=10;fontWeight=bold;" vertex="1" parent="35">
+          <mxGeometry x="375" y="400" as="geometry"/>
+        </mxCell>
+        <mxCell id="37" value="" style="shape=connection;strokeColor=#2c3e50;strokeWidth=1.5;startArrow=none;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="510" y="400" as="source"/>
+            <mxPoint x="600" y="400" as="target"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="38" value="N" style="shape=label;fillColor=transparent;strokeColor=transparent;fontSize=10;fontWeight=bold;" vertex="1" parent="37">
+          <mxGeometry x="540" y="390" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

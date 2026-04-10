@@ -15,6 +15,8 @@ const englishApi = {
 
     // 根据 ID 获取记录
     getEnglishById: (id: number) => get(`/english/get/${id}`),
+    // 根据 userId 获取记录
+    getEnglishByuserId: (userId: number) => get(`/english/get/cww/${userId}`),
     // 批量获取记录
     getEnglishByIds: (ids: number[]) => post('/english/getByIds', { ids }),
     // 根据 selectVal 获取记录

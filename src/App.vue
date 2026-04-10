@@ -34,6 +34,109 @@ import GlobalChat from './components/cwwChat.vue'
   min-height: 100vh;
 }
 
+html,
+body {
+  margin: 0;
+  background-color: #f0f2f5;
+}
+
+html.dark,
+html.dark body {
+  background-color: #0f172a;
+  color: #e5e7eb;
+}
+
+html.dark .admin-layout {
+  background-color: #0f172a;
+}
+
+html.dark .top-header {
+  background-color: #111827;
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+html.dark .header {
+  background-color: #1d283a !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .aside {
+  background-color: #1d283a !important;
+  border-right-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark .logo span {
+  color: #e5e7eb;
+}
+
+html.dark .collapse-btn {
+  color: #e5e7eb !important;
+}
+
+html.dark .el-menu-vertical {
+  background-color: transparent !important;
+}
+
+html.dark .el-menu-item {
+  background-color: transparent !important;
+  color: #e5e7eb !important;
+}
+
+html.dark .el-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #409eff !important;
+}
+
+html.dark .el-menu-item.is-active {
+  background-color: #409eff !important;
+  color: #fff !important;
+}
+
+html.dark .el-menu-item .el-icon {
+  color: #e5e7eb !important;
+}
+
+html.dark .el-menu-item.is-active .el-icon {
+  color: #fff !important;
+}
+
+html.dark .main-content {
+  background-color: transparent !important;
+}
+
+html.dark .menu-group-title {
+  color: #6b7280 !important;
+}
+
+html.dark .user-trigger {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html.dark .user-trigger:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+html.dark .avatar-wrapper {
+  box-shadow:
+    0 0 0 2px rgba(64, 158, 255, 0.4),
+    0 0 10px rgba(64, 158, 255, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .avatar-img {
+  border-color: #1d283a;
+}
+
+html.dark .username {
+  color: #e5e7eb;
+}
+
+html.dark .arrow-icon {
+  color: rgba(255, 255, 255, 0.6);
+}
+
 /* 确保宠物在所有内容之上 */
 .global-pet {
   z-index: 9999;

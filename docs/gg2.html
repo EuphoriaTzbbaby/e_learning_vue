@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>英语学习系统E-R图</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+        .entity {
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+        .entity-name {
+            background-color: #3498db;
+            color: white;
+            padding: 5px 10px;
+            margin: -10px -10px 10px -10px;
+            border-radius: 3px 3px 0 0;
+            font-weight: bold;
+        }
+        .attribute {
+            margin: 5px 0;
+            padding: 3px 0;
+        }
+        .primary-key {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .foreign-key {
+            font-style: italic;
+            color: #27ae60;
+        }
+        .relationship {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #ecf0f1;
+            border-left: 4px solid #9b59b6;
+        }
+        .diagram {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .er-diagram {
+            font-family: monospace;
+            white-space: pre;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body>
+    <h1>英语学习系统E-R图</h1>
+
+    <h2>1. 实体关系图</h2>
+    <div class="diagram">
+        <div class="er-diagram">
++---------------------+        +---------------------+        +---------------------+
+|        用户         |        |      视频合集       |        |        视频         |
+|      (User)         |        |      (Album)        |        |      (Video)        |
++---------------------+        +---------------------+        +---------------------+
+| PK| 用户ID (id)     |<-------| FK| 教师ID          |<-------| FK| 合集ID          |
+|   | 用户名          |    1:N |   | 合集ID          |    1:N |   | 视频ID          |
+|   | 密码            |        |   | 合集标题        |        |   | 视频标题        |
+|   | 邮箱            |        |   | 封面URL         |        |   | 视频URL         |
+|   | 角色            |        |   | 是否删除        |        |   | 封面URL         |
+|   | 是否删除        |        |   |                 |        |   | 是否删除        |
++---------------------+        +---------------------+        +---------------------+
+         |                                                             
+         | 1:N                                                         
+         v                                                             
++---------------------+        +---------------------+        +---------------------+
+|     英语学习        |        |     复习状态        |        |     复习记录        |
+|    (English)        |        |   (ReviewState)     |        |    (ReviewLog)      |
++---------------------+        +---------------------+        +---------------------+
+| PK| 英语ID          |<------>| FK| 英语ID          |<-------| FK| 英语ID          |
+| FK| 用户ID          |   1:1  |   | 状态ID          |    1:N |   | 记录ID          |
+|   | 英语单词        |        |   | 复习次数        |        | FK| 用户ID          |
+|   | 中文翻译        |        |   | 下次复习时间    |        |   | 复习时间        |
+|   | 难度级别        |        |   | 熟悉度          |        |   | 复习结果        |
+|   | 是否删除        |        |   | 是否删除        |        |   | 是否删除        |
++---------------------+        +---------------------+        +---------------------+
+         |                                                             
+         | 1:N                                                         
+         v                                                             
++---------------------+                                                
+|     AI阅读理解      |                                                
+|    (AIReading)      |                                                
++---------------------+                                                
+| PK| 阅读ID          |                                                
+| FK| 用户ID          |                                                
+|   | 阅读内容        |                                                
+|   | 问题            |                                                
+|   | 回答            |                                                
+|   | 评分            |                                                
+|   | 阅读时间        |                                                
+|   | 是否删除        |                                                
++---------------------+                                                
+        </div>
+    </div>
+
+    <h2>2. 实体详细定义</h2>
+
+    <div class="entity">
+        <div class="entity-name">用户 (User)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">用户ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>用户唯一标识符</td>
+            </tr>
+            <tr>
+                <td>用户名</td>
+                <td>username</td>
+                <td>VARCHAR(50)</td>
+                <td>非空, 唯一</td>
+                <td>用户登录名</td>
+            </tr>
+            <tr>
+                <td>密码</td>
+                <td>password</td>
+                <td>VARCHAR(100)</td>
+                <td>非空</td>
+                <td>加密存储的密码</td>
+            </tr>
+            <tr>
+                <td>邮箱</td>
+                <td>email</td>
+                <td>VARCHAR(100)</td>
+                <td>唯一</td>
+                <td>用户邮箱地址</td>
+            </tr>
+            <tr>
+                <td>角色</td>
+                <td>role</td>
+                <td>VARCHAR(20)</td>
+                <td>非空</td>
+                <td>用户角色: STUDENT/TEACHER/ADMIN</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="entity">
+        <div class="entity-name">视频合集 (Album)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">合集ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>合集唯一标识符</td>
+            </tr>
+            <tr>
+                <td>合集标题</td>
+                <td>title</td>
+                <td>VARCHAR(100)</td>
+                <td>非空</td>
+                <td>合集名称</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">教师ID</td>
+                <td>teacher_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键</td>
+                <td>关联User表的id</td>
+            </tr>
+            <tr>
+                <td>封面URL</td>
+                <td>cover_url</td>
+                <td>VARCHAR(255)</td>
+                <td></td>
+                <td>合集封面图片URL</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="entity">
+        <div class="entity-name">视频 (Video)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">视频ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>视频唯一标识符</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">合集ID</td>
+                <td>album_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键</td>
+                <td>关联Album表的id</td>
+            </tr>
+            <tr>
+                <td>视频标题</td>
+                <td>title</td>
+                <td>VARCHAR(100)</td>
+                <td>非空</td>
+                <td>视频名称</td>
+            </tr>
+            <tr>
+                <td>视频URL</td>
+                <td>video_url</td>
+                <td>VARCHAR(255)</td>
+                <td>非空</td>
+                <td>视频文件URL</td>
+            </tr>
+            <tr>
+                <td>封面URL</td>
+                <td>cover_url</td>
+                <td>VARCHAR(255)</td>
+                <td></td>
+                <td>视频封面图片URL</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="entity">
+        <div class="entity-name">英语学习 (English)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">英语ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>英语学习记录唯一标识符</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">用户ID</td>
+                <td>user_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键</td>
+                <td>关联User表的id</td>
+            </tr>
+            <tr>
+                <td>英语单词</td>
+                <td>word</td>
+                <td>VARCHAR(100)</td>
+                <td>非空</td>
+                <td>英语单词</td>
+            </tr>
+            <tr>
+                <td>中文翻译</td>
+                <td>translation</td>
+                <td>VARCHAR(255)</td>
+                <td>非空</td>
+                <td>单词中文翻译</td>
+            </tr>
+            <tr>
+                <td>难度级别</td>
+                <td>level</td>
+                <td>INT</td>
+                <td></td>
+                <td>单词难度等级</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="entity">
+        <div class="entity-name">复习状态 (ReviewState)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">状态ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>复习状态唯一标识符</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">英语ID</td>
+                <td>eg_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键, 唯一</td>
+                <td>关联English表的id</td>
+            </tr>
+            <tr>
+                <td>复习次数</td>
+                <td>review_count</td>
+                <td>INT</td>
+                <td>默认值: 0</td>
+                <td>已复习次数</td>
+            </tr>
+            <tr>
+                <td>下次复习时间</td>
+                <td>next_review_time</td>
+                <td>DATETIME</td>
+                <td></td>
+                <td>计划下次复习时间</td>
+            </tr>
+            <tr>
+                <td>熟悉度</td>
+                <td>familiarity</td>
+                <td>INT</td>
+                <td>默认值: 0</td>
+                <td>单词熟悉程度</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="entity">
+        <div class="entity-name">复习记录 (ReviewLog)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">记录ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>复习记录唯一标识符</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">英语ID</td>
+                <td>eg_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键</td>
+                <td>关联English表的id</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">用户ID</td>
+                <td>user_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键</td>
+                <td>关联User表的id</td>
+            </tr>
+            <tr>
+                <td>复习时间</td>
+                <td>review_time</td>
+                <td>DATETIME</td>
+                <td>非空</td>
+                <td>复习的时间</td>
+            </tr>
+            <tr>
+                <td>复习结果</td>
+                <td>result</td>
+                <td>INT</td>
+                <td></td>
+                <td>复习结果评分</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="entity">
+        <div class="entity-name">AI阅读理解 (AIReading)</div>
+        <table>
+            <tr>
+                <th>属性名</th>
+                <th>代码</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td class="primary-key">阅读ID</td>
+                <td>id</td>
+                <td>BIGINT</td>
+                <td>主键, 自增</td>
+                <td>阅读记录唯一标识符</td>
+            </tr>
+            <tr>
+                <td class="foreign-key">用户ID</td>
+                <td>user_id</td>
+                <td>BIGINT</td>
+                <td>非空, 外键</td>
+                <td>关联User表的id</td>
+            </tr>
+            <tr>
+                <td>阅读内容</td>
+                <td>content</td>
+                <td>TEXT</td>
+                <td>非空</td>
+                <td>阅读文章内容</td>
+            </tr>
+            <tr>
+                <td>问题</td>
+                <td>question</td>
+                <td>TEXT</td>
+                <td></td>
+                <td>AI生成的问题</td>
+            </tr>
+            <tr>
+                <td>回答</td>
+                <td>answer</td>
+                <td>TEXT</td>
+                <td></td>
+                <td>用户的回答</td>
+            </tr>
+            <tr>
+                <td>评分</td>
+                <td>score</td>
+                <td>INT</td>
+                <td></td>
+                <td>AI评分结果</td>
+            </tr>
+            <tr>
+                <td>阅读时间</td>
+                <td>read_time</td>
+                <td>DATETIME</td>
+                <td>非空</td>
+                <td>阅读的时间</td>
+            </tr>
+            <tr>
+                <td>是否删除</td>
+                <td>is_deleted</td>
+                <td>TINYINT</td>
+                <td>默认值: 0</td>
+                <td>逻辑删除标记</td>
+            </tr>
+        </table>
+    </div>
+
+    <h2>3. 实体关系定义</h2>
+
+    <div class="relationship">
+        <h3>用户 → 视频合集 (1:N)</h3>
+        <p>一个用户(教师)可以创建多个视频合集，每个视频合集只属于一个用户。</p>
+        <p>外键: Album.teacher_id → User.id</p>
+    </div>
+
+    <div class="relationship">
+        <h3>视频合集 → 视频 (1:N)</h3>
+        <p>一个视频合集可以包含多个视频，每个视频只属于一个视频合集。</p>
+        <p>外键: Video.album_id → Album.id</p>
+    </div>
+
+    <div class="relationship">
+        <h3>用户 → 英语学习 (1:N)</h3>
+        <p>一个用户可以有多个英语学习记录，每个英语学习记录只属于一个用户。</p>
+        <p>外键: English.user_id → User.id</p>
+    </div>
+
+    <div class="relationship">
+        <h3>英语学习 → 复习状态 (1:1)</h3>
+        <p>一个英语学习记录对应一个复习状态，一个复习状态只对应一个英语学习记录。</p>
+        <p>外键: ReviewState.eg_id → English.id</p>
+    </div>
+
+    <div class="relationship">
+        <h3>用户 → 复习记录 (1:N)</h3>
+        <p>一个用户可以有多个复习记录，每个复习记录只属于一个用户。</p>
+        <p>外键: ReviewLog.user_id → User.id</p>
+    </div>
+
+    <div class="relationship">
+        <h3>英语学习 → 复习记录 (1:N)</h3>
+        <p>一个英语学习记录可以有多个复习记录，每个复习记录只对应一个英语学习记录。</p>
+        <p>外键: ReviewLog.eg_id → English.id</p>
+    </div>
+
+    <div class="relationship">
+        <h3>用户 → AI阅读理解 (1:N)</h3>
+        <p>一个用户可以有多个AI阅读理解记录，每个AI阅读理解记录只属于一个用户。</p>
+        <p>外键: AIReading.user_id → User.id</p>
+    </div>
+
+</body>
+</html>

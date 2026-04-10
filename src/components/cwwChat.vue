@@ -17,7 +17,7 @@
     <!-- 聊天对话框 -->
     <el-dialog 
       v-model="showDialog" 
-      title="🐾 与AI之父吴越聊天" 
+      title="🐾 与AI之母cww聊天" 
       width="580px"
       :before-close="handleClose"
       class="pet-dialog"
@@ -29,7 +29,7 @@
         <div class="custom-dialog-header">
           <div class="dialog-title">
             <img :src="petImg" alt="pet" class="dialog-pet-avatar" />
-            <span class="dialog-title-text">🐾 与AI之父吴越聊天</span>
+            <span class="dialog-title-text">🐾 与AI之母cww聊天</span>
           </div>
           <el-button 
             @click="close" 
@@ -113,7 +113,7 @@ const movePet = (event: MouseEvent) => {
   const randomAngle = Math.random() * 2 * Math.PI
   
   // 计算在133px圆形边界上的随机位置
-  const radius = 133
+  const radius = 299
   const offsetX = Math.cos(randomAngle) * radius
   const offsetY = Math.sin(randomAngle) * radius
   
@@ -209,7 +209,7 @@ const handleClose = (done: () => void) => { done() }
 onMounted(() => {
   document.addEventListener('mousemove', movePet)
   setTimeout(() => {
-    messages.value.push({ role: 'assistant', content: '你好！我是AI之父吴越大王，点我就能和我聊天哦~' })
+    messages.value.push({ role: 'assistant', content: '你好！我是AI之母cww大王，点我就能和我聊天哦~' })
   }, 1000)
 })
 

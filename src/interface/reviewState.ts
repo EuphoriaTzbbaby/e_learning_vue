@@ -3,12 +3,13 @@ export interface ReviewState {
     userId: number;
     egId : number;
     intervalDays: number;
-    strength: number;
-    difficulty: number;
-    forgettingIdx: number;
+    ef: number;
     repetitions : number;
     lastReview: string;
     nextReview: string;
     createDate: string;
     updateDate: string;
+    strength?: number;
+    difficulty?: number;
+    forgettingIdx?: number;
 }

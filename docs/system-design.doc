@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>系统详细设计 — EnglishGamePro、Wordle、AiReading、CourseList</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, "Microsoft YaHei", sans-serif; line-height: 1.7; color: #222; }
+    h1, h2, h3 { color: #1a1a1a; }
+    h1 { font-size: 26px; margin: 10px 0 20px; }
+    h2 { font-size: 20px; margin: 24px 0 12px; }
+    h3 { font-size: 16px; margin: 18px 0 10px; }
+    code { background: #f6f8fa; padding: 1px 4px; border-radius: 4px; }
+    pre { background: #f6f8fa; padding: 10px; overflow: auto; border-radius: 6px; }
+    .tag { display: inline-block; background: #eef2ff; color: #555; padding: 2px 8px; border-radius: 6px; margin-right: 6px; font-size: 12px; }
+    .list { margin: 8px 0 14px; }
+    .kpi { display: inline-block; padding: 6px 10px; border: 1px solid #eaeaea; border-radius: 8px; margin: 4px 10px 4px 0; }
+    .table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
+    .table th, .table td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
+    .muted { color: #666; }
+    .toc a { color: #0366d6; text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+  </style>
+  <!-- 该文档为HTML格式，保存为 .doc，便于直接以Word打开编辑 -->
+  <meta name="generator" content="Trae AI" />
+  <meta name="version" content="v1.0" />
+  <meta name="date" content="2025-10-14" />
+</head>
+<body>
+  <h1>系统详细设计 — EnglishGamePro、Wordle、AiReading、CourseList</h1>
+  <div class="muted">项目：e_learning_vue — 技术栈：Vue 3 + TypeScript + Element Plus</div>
+
+  <h2>目录</h2>
+  <div class="toc">
+    <div><a href="#overview">1. 总览与架构</a></div>
+    <div><a href="#routing">2. 路由与导航</a></div>
+    <div><a href="#englishgamepro">3. EnglishGamePro 设计</a></div>
+    <div><a href="#wordle">4. Wordle 游戏设计</a></div>
+    <div><a href="#aireading">5. AiReading.vue 设计</a></div>
+    <div><a href="#courselist">6. CourseList.vue 设计</a></div>
+    <div><a href="#models">7. 核心数据模型</a></div>
+    <div><a href="#apis">8. API 接口与工具</a></div>
+    <div><a href="#state">9. 状态管理与交互</a></div>
+    <div><a href="#error">10. 错误处理与兼容性</a></div>
+    <div><a href="#perf">11. 性能与优化建议</a></div>
+    <div><a href="#testing">12. 测试与验收</a></div>
+    <div><a href="#future">13. 扩展与演进方向</a></div>
+  </div>
+
+  <h2 id="overview">1. 总览与架构</h2>
+  <div class="list">
+    <div>• 前端框架：<span class="tag">Vue 3</span> <span class="tag">TypeScript</span> <span class="tag">Element Plus</span></div>
+    <div>• 构建工具：<span class="tag">Vite</span>；代码组织：<code>src/views/class</code> 下包含学习与游戏页面。</div>
+    <div>• 主题与风格：组件化UI，交互即时反馈（ElMessage、ElDialog、ElCard、ElButton等）。</div>
+    <div>• 数据来源：<code>src/api</code> 下的接口模块；用户信息来自 <code>localStorage</code>。</div>
+    <div>• 工具与解析：<code>marked</code> 解析Markdown，<code>sm5</code> 智能复习算法，<code>wordLoader</code> 单词库载入。</div>
+  </div>
+
+  <h2 id="routing">2. 路由与导航</h2>
+  <p>导航由 <code>StudentLayout.vue</code> 提供侧边菜单：</p>
+  <ul>
+    <li><code>/student/englishGamePro</code> — EnglishGamePro</li>
+    <li><code>/student/wordle</code> — Wordle游戏</li>
+    <li><code>/student/aiReading</code> — AI阅读理解</li>
+    <li><code>/student/courseList</code> — 课程列表</li>
+  </ul>
+  <p>每个视图页面在 <code>src/views/class</code> 下有独立实现，路由切换保持状态隔离。</p>
+
+  <h2 id="englishgamepro">3. EnglishGamePro 设计</h2>
+  <h3>3.1 功能概述</h3>
+  <ul>
+    <li>基于用户个人词库的分轮复习卡片式学习。</li>
+    <li>四档评分（熟悉、认识、模糊、不认识）驱动复习间隔与优先级。</li>
+    <li>进度展示、骨架屏、动效过渡（fade/slide-fade）。</li>
+  </ul>
+  <h3>3.2 关键交互</h3>
+  <ul>
+    <li>显示英文单词 <code>english.coreKey</code> 与例句 <code>english.content</code>；点击“显示翻译”展示 <code>english.translation</code>。</li>
+    <li>评分按钮调用 <code>rate(label)</code>：提交复习结果、推进索引、更新进度。</li>
+    <li>复习完成后展示 <code>ElResult</code>，提供“再来一遍”“返回”。</li>
+  </ul>
+  <h3>3.3 数据流</h3>
+  <ul>
+    <li>用户ID从 <code>localStorage</code> 读取。</li>
+    <li>调用 <code>reviewApi.getAllReviews(userId)</code> 获取待复习列表（含英文数据）。</li>
+    <li>评分后写入 <code>reviewLogApi</code>；根据 <code>sm5Update</code> 计算下次复习计划。</li>
+  </ul>
+  <h3>3.4 算法与策略</h3>
+  <ul>
+    <li><code>sm5Update</code>：基于间隔重复原则更新复习状态（如熟练度、下次时间）。</li>
+    <li>进度条：<code>done/total</code> 实时计算，动画优化用户反馈。</li>
+    <li>键盘快捷键：空格显示翻译，简化操作负担。</li>
+  </ul>
+  <h3>3.5 可靠性与错误处理</h3>
+  <ul>
+    <li>加载失败时提示 <code>ElMessage</code>；空列表时优雅降级。</li>
+    <li>评分过程有 <code>rating</code> 状态避免重复提交。</li>
+  </ul>
+
+  <h2 id="wordle">4. Wordle 游戏设计</h2>
+  <h3>4.1 功能概述</h3>
+  <ul>
+    <li>经典 Wordle 玩法（最多7行，长度由难度选择决定）。</li>
+    <li>屏幕与物理键盘输入、IME兼容、行抖动与正确高亮动画。</li>
+    <li>游戏统计（游戏次数、胜率、连胜、猜测分布）、设置面板。</li>
+  </ul>
+  <h3>4.2 核心状态</h3>
+  <ul>
+    <li><code>gameStatus</code>：<code>playing|won|lost</code>；<code>gameGrid</code>：二维格子存储字母与状态。</li>
+    <li><code>targetWord</code> 与 <code>currentWordMeaning</code> 从词库选择并同步释义。</li>
+    <li><code>keyStatus</code>：记录键盘每个字母的状态（correct/present/absent）。</li>
+  </ul>
+  <h3>4.3 数据来源</h3>
+  <ul>
+    <li><code>loadGraduateWords</code> 加载考研单词；<code>filterWordsByDifficulty</code> 按字母长度过滤。</li>
+    <li>目标词随机选择并规范为小写；释义匹配自原始词表。</li>
+  </ul>
+  <h3>4.4 评判逻辑</h3>
+  <ul>
+    <li>第一遍标记完全匹配（位置与字母一致：<code>correct</code>）。</li>
+    <li>第二遍标记包含但位置不对（<code>present</code>）与缺失（<code>absent</code>）。</li>
+    <li>按优先级更新键盘状态：<code>correct > present > absent</code>。</li>
+  </ul>
+  <h3>4.5 交互与反馈</h3>
+  <ul>
+    <li>非法单词行抖动、整行标记不合法；末行失败后显示答案与释义。</li>
+    <li>胜利/失败状态弹窗展示统计；难度更新重置网格与分布。</li>
+  </ul>
+
+  <h2 id="aireading">5. AiReading.vue 设计</h2>
+  <h3>5.1 功能概述</h3>
+  <ul>
+    <li>调用AI生成阅读理解材料（英文文本、中文翻译、题目及答案）。</li>
+    <li>支持“Markdown视图”与“结构化视图”双模式展示。</li>
+  </ul>
+  <h3>5.2 关键逻辑</h3>
+  <ul>
+    <li>获取内容：<code>getDeepSeekResponse(prompt): Promise&lt;string&gt;</code> 返回AI生成的Markdown。</li>
+    <li>Markdown渲染：<code>marked.parse</code> 结果强制为 <code>string</code>，避免类型不匹配。</li>
+    <li>结构化解析：<code>parseSections</code> 与增强的标题匹配策略：
+      <ul>
+        <li>宽容识别标题级别（<code>#</code> 到 <code>######</code>）、同义词与中英文变体。</li>
+        <li>兼容题干与选项格式（<code>1.</code>/<code>1)</code>，<code>A.</code>/<code>A)</code>）。</li>
+        <li>兜底策略：未命中英文标题时取中文标题之前的文本；题目区域未命中时取“题目标题—答案标题”之间内容。</li>
+      </ul>
+    </li>
+    <li>答案判定：<code>isCorrect(idx: number)</code> 与选项绑定，支持交互反馈。</li>
+  </ul>
+  <h3>5.3 体验与兼容</h3>
+  <ul>
+    <li>骨架屏/加载状态、错误消息展示，保证在AI返回异常时也可回退到Markdown视图。</li>
+    <li>样式与交互更新保持与原逻辑一致，避免破坏已有行为。</li>
+  </ul>
+
+  <h2 id="courselist">6. CourseList.vue 设计</h2>
+  <h3>6.1 功能概述</h3>
+  <ul>
+    <li>展示视频合集列表（封面、标题、描述），支持分页与骨架屏。</li>
+    <li>点击进入详情页进行学习。</li>
+  </ul>
+  <h3>6.2 数据流</h3>
+  <ul>
+    <li>调用 <code>videoAlbumApi.getAllAlbums()</code> 获取合集数据。</li>
+    <li>分页数据来自 <code>computed</code> 的 <code>paginatedAlbums</code>。</li>
+    <li>通过 <code>useRouter</code> 导航到详情页（<code>goToDetail</code>）。</li>
+  </ul>
+  <h3>6.3 体验优化</h3>
+  <ul>
+    <li>加载阶段采用 <code>ElSkeleton</code>，提升首屏感知。</li>
+    <li>卡片阴影与按钮Plain态增强可读性与点击反馈。</li>
+  </ul>
+
+  <h2 id="models">7. 核心数据模型</h2>
+  <table class="table">
+    <tr><th>模型</th><th>主要字段</th><th>用途</th></tr>
+    <tr><td>English</td><td><code>egId,userId,content,coreKey,translation,isTaboo,textCnt,status,updateDate</code></td><td>用户词库与学习内容。</td></tr>
+    <tr><td>ReviewState</td><td><code>userId,egId,nextReview,interval,efactor</code>（具体以 <code>utils/sm5</code> 为准）</td><td>复习计划与记忆强度。</td></tr>
+    <tr><td>ReviewLog</td><td><code>logId,userId,egId,score,lastReview</code></td><td>评分历史与统计。</td></tr>
+    <tr><td>VideoAlbum</td><td><code>id,title,description,coverUrl</code></td><td>课程合集信息。</td></tr>
+  </table>
+
+  <h2 id="apis">8. API 接口与工具</h2>
+  <ul>
+    <li><code>src/api/english.ts</code>：单词数据增删改查。</li>
+    <li><code>src/api/reviewState.ts</code>：复习状态（获取、更新）。</li>
+    <li><code>src/api/reviewLog.ts</code>：记录评分日志。</li>
+    <li><code>src/api/videoAlbum.ts</code>：课程合集数据。</li>
+    <li><code>src/utils/sm5.ts</code>：基于SM-5的复习间隔更新算法。</li>
+    <li><code>src/utils/wordLoader.ts</code>：考研词库载入与按难度过滤。</li>
+    <li><code>src/utils/ds.ts</code>：<code>getDeepSeekResponse</code> 返回AI Markdown文本。</li>
+  </ul>
+
+  <h2 id="state">9. 状态管理与交互</h2>
+  <ul>
+    <li>采用 <code>ref</code> 与 <code>computed</code> 的局部状态，避免全局副作用。</li>
+    <li>用户信息持久化于 <code>localStorage</code>，视图初始化时读取。</li>
+    <li>常用交互：键盘事件（Enter/空格）、提示消息（ElMessage）、弹窗（ElDialog）。</li>
+    <li>动画过渡：<code>transition</code> 配合 <code>fade</code>/<code>slide-fade</code> 类名实现。</li>
+  </ul>
+
+  <h2 id="error">10. 错误处理与兼容性</h2>
+  <ul>
+    <li>接口调用 <code>try/catch</code> 包裹，失败时使用 <code>ElMessage</code> 告知用户。</li>
+    <li>AiReading：
+      <ul>
+        <li>Markdown解析结果强制为 <code>string</code>，避免类型错误。</li>
+        <li>结构化视图解析宽容化，未命中标题时启用兜底策略。</li>
+      </ul>
+    </li>
+    <li>Wordle：IME输入与非法词处理加入行抖动与末行失败逻辑。</li>
+  </ul>
+
+  <h2 id="perf">11. 性能与优化建议</h2>
+  <ul>
+    <li>列表分页与懒渲染：<code>CourseList.vue</code> 使用 <code>paginatedAlbums</code>，减少一次渲染数据量。</li>
+    <li>骨架屏减少感知等待：<code>ElSkeleton</code> 在加载期展示。</li>
+    <li>计算属性缓存：进度、分页、难度等使用 <code>computed</code>，避免重复计算。</li>
+    <li>建议：
+      <ul>
+        <li>对AI请求与词库载入增加超时与重试策略。</li>
+        <li>结构化解析可引入状态机或AST级Markdown解析提升稳定性。</li>
+        <li>资源按需加载（路由级代码分割），降低首屏包体积。</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2 id="testing">12. 测试与验收</h2>
+  <h3>12.1 单元测试建议</h3>
+  <ul>
+    <li><code>sm5Update</code>：不同评分与初始参数下的下一次复习时间与间隔。</li>
+    <li><code>parseSections</code>：针对多种标题/选项格式的解析正确性与兜底行为。</li>
+    <li><code>filterWordsByDifficulty</code>：输入边界与大小写归一化。</li>
+  </ul>
+  <h3>12.2 交互测试</h3>
+  <ul>
+    <li>EnglishGamePro：评分按钮状态、进度条展示、再来一遍流程。</li>
+    <li>Wordle：键盘输入、行抖动动画、生/失败弹窗与统计数据。</li>
+    <li>AiReading：Markdown/结构化视图切换、选项点击判定、AI异常回退。</li>
+    <li>CourseList：分页与进入详情的导航正确性。</li>
+  </ul>
+  <h3>12.3 验收标准</h3>
+  <ul>
+    <li>四视图在侧栏均可正常访问，首屏无报错；</li>
+    <li>核心交互（评分、提交、解析、分页）稳定且有用户反馈；</li>
+    <li>异常情况下有明确提示且不阻断其它功能使用。</li>
+  </ul>
+
+  <h2 id="future">13. 扩展与演进方向</h2>
+  <ul>
+    <li>EnglishGamePro：
+      <ul>
+        <li>引入更多维度的评分（语音、拼写、用法），更细化复习策略。</li>
+        <li>支持标签与难度分层，结合用户画像推荐复习顺序。</li>
+      </ul>
+    </li>
+    <li>Wordle：
+      <ul>
+        <li>增加每日挑战模式与排行榜；</li>
+        <li>引入自定义词库与主题皮肤。</li>
+      </ul>
+    </li>
+    <li>AiReading：
+      <ul>
+        <li>统一Markdown解析为AST并做语义分块，支持更复杂的题型（填空/匹配）。</li>
+        <li>缓存与版本化AI响应，便于复现与教学内容回溯。</li>
+      </ul>
+    </li>
+    <li>CourseList：
+      <ul>
+        <li>支持搜索与筛选（教师、主题、难度），并引入服务端分页。</li>
+        <li>增加合集详情页的学习进度与收藏功能。</li>
+      </ul>
+    </li>
+    <li>通用：引入统一的错误边界组件与日志上报（Sentry）。</li>
+  </ul>
+
+  <hr/>
+  <p class="muted">文档说明：该文件以HTML保存为 <code>.doc</code>，可直接用Microsoft Word打开编辑与导出PDF。</p>
+</body>
+</html>

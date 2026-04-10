@@ -195,24 +195,31 @@ const fetchEnglishList = async () => {
   try {
     vis.clear();
     currentIndex.value = 0;
-    const res = await englishApi.getAllEnglish();
+    
+    // 获取当前用户的英语内容
+    const res = await englishApi.getEnglishByuserId(userId);
+    const userEnglishList = res.data || [];
+    
+    // 处理熟悉状态的自动重置
     let v = dayjs().format('YYYY-MM-DD HH:mm:ss');
-    for(let item of res.data) {
+    for (let item of userEnglishList) {
       let diff = -dayjs(item.updateDate).diff(dayjs(v), 'seconds');
-      if(diff >= cww && item.isTaboo == '1') {
+      if (diff >= cww && item.isTaboo == '1') {
         item.isTaboo = 0;
         try {
           item.updateDate = dayjs().format('YYYY-MM-DD HH:mm:ss');
-          englishApi.updateEnglish(item);
+          await englishApi.updateEnglish(item);
         } catch (err) {
           console.error(err);
-          ElMessage.error('操作失败');
         }
       }
     }
-    const list = res.data.filter(
-      (e: any) => e.userId == userId && e.isDeleted == '0' && e.isTaboo == 0
+    
+    // 过滤出未删除且未标记为熟悉的内容
+    const list = userEnglishList.filter(
+      (e: any) => e.isDeleted == '0' && e.isTaboo == 0
     );
+    
     filteredList.value = list;
     englishList.value = list;
     startGame();
