@@ -548,6 +548,7 @@ export default defineComponent({
 
     // 源头，就那么多
     onMounted(() => {
+      console.log(currentUser)
       fetchEnglishList();
       window.addEventListener('keydown', handleKeyDown);
     });

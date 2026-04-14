@@ -136,17 +136,17 @@
                     <el-input v-model="formVideo.videoUrl" placeholder="请输入视频 URL" />
                 </el-form-item>
 
-                <el-form-item label="OSS Key" v-if="!isEditMode">
+                <!-- <el-form-item label="OSS Key" v-if="!isEditMode">
                     <el-input v-model="formVideo.ossKey" placeholder="上传成功后自动生成" disabled />
-                </el-form-item>
+                </el-form-item> -->
 
                 <el-form-item label="OSS目录" v-if="!isEditMode">
                     <el-input v-model="formVideo.ossPrefix" placeholder="选择合集后自动设置" disabled />
                 </el-form-item>
 
-                <el-form-item label="视频时长(秒)">
+                <!-- <el-form-item label="视频时长(秒)">
                     <el-input-number v-model="formVideo.duration" :min="0" placeholder="秒" style="width: 100%;" />
-                </el-form-item>
+                </el-form-item> -->
 
                 <el-form-item label="排序值">
                     <el-input-number v-model="formVideo.sortOrder" :min="0" style="width: 100%;" disabled />
@@ -398,6 +398,7 @@ export default defineComponent({
         };
 
         const beforeVideoUpload = (file: File) => {
+            console.log('用户选择的文件:', file, file.name);
             if (!formVideo.value.ossPrefix) {
                 ElMessage.warning('请先选择OSS目录');
                 return false;
@@ -421,9 +422,14 @@ export default defineComponent({
         const handleVideoUploadSuccess = (response: any) => {
             if (response.success) {
                 ElMessage.success('视频上传成功！');
-                
+                console.log('response', response);
                 // 从响应中获取 ossKey 和 url
-                const ossKey = response.ossKey || response.data?.ossKey || '';
+                const urlStr = String(response.url || '');
+                const f = urlStr.split('/');
+                const n = f.length;
+                const ossKey = f[n - 3] + "/" + f[n - 2] + "/" +  f[n - 1];
+                formVideo.value.title = f[n - 1];
+                console.log(ossKey, formVideo.value.title);
                 const videoUrl = response.url || response.data?.url || '';
                 
                 // 设置 ossKey 和 videoUrl
@@ -431,11 +437,13 @@ export default defineComponent({
                 formVideo.value.videoUrl = videoUrl;
                 
                 // 自动提取视频标题：从 ossKey 中提取文件名（去除扩展名）
-                if (ossKey && !formVideo.value.title) {
-                    const fileName = ossKey.split('/').pop() || '';
-                    const titleWithoutExt = fileName.replace(/\.[^/.]+$/, '');
-                    formVideo.value.title = titleWithoutExt;
-                }
+                // if (ossKey && !formVideo.value.title) {
+                //     const fileName = ossKey.split('/').pop() || '';
+                //     const titleWithoutExt = fileName.replace(/\.[^/.]+$/, '');
+                //     formVideo.value.title = titleWithoutExt;
+                //     console.log(fileName, titleWithoutExt, formVideo.value.title);
+                // }
+
                 
                 // 确保 ossKey 格式为：e_learning/合集名称/视频标题
                 if (formVideo.value.albumId && formVideo.value.title) {

@@ -132,9 +132,11 @@ const SCORE_MAP: Record<'熟悉' | '认识' | '模糊' | '不认识', number> = 
 
 // ====== 获取待复习列表 ======
 async function fetchDue() {
+  console.log(userId, 1111)
   loading.value = true;
   try {
     const res = await reviewApi.getAllReviews(userId);
+    console.log(res, 1111)
     const reviews: ReviewStateWithEnglish[] = res?.data ?? [];
     
     if (!reviews.length) {
@@ -158,12 +160,10 @@ async function fetchDue() {
     unfinishedReviews.sort((a, b) => {
       return dayjs(a.nextReview).unix() - dayjs(b.nextReview).unix();
     });
-    
     const egIds = unfinishedReviews.map((r) => r.egId);
     const enRes = await englishApi.getEnglishByIds(egIds);
     const enMap = new Map<number, English>();
     (enRes.data as English[]).forEach((en) => enMap.set(en.egId, en));
-
     list.value = unfinishedReviews.map((r) => {
       const english = enMap.get(r.egId);
       if (!english) {
@@ -171,6 +171,7 @@ async function fetchDue() {
       }
       return { ...r, english };
     });
+    console.log(list.value, 1111)
   } catch (e) {
     console.error('获取待复习列表失败:', e);
     ElMessage.error('获取待复习列表失败');

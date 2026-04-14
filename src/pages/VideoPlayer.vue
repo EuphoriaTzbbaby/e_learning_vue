@@ -313,7 +313,8 @@ async function fetchVideoList() {
 
 function playVideo(video: VideoItem) {
   currentVideo.value = video
-  currentVideoUrl.value = ossBaseUrl + encodeURIComponent(video.ossKey)
+  // 优先使用 videoUrl，如果没有则使用 ossKey 拼接（兼容旧数据）
+  currentVideoUrl.value = video.videoUrl || (ossBaseUrl + encodeURIComponent(video.ossKey))
   watchRecordedForSession.value = false
 }
 

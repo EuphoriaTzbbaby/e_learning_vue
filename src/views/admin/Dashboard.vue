@@ -201,6 +201,7 @@ import * as XLSX from 'xlsx'
 import {
   User,
   VideoCamera,
+  VideoPlay,
   // Collection,
   ChatDotRound,
   Reading,
@@ -210,8 +211,8 @@ import {
   More,
   UserFilled,
   Refresh,
-  DocumentAdd,
-  Edit,
+  Star,
+  Document
   // Delete
 } from '@element-plus/icons-vue'
 import videoApi from '../../api/video'
@@ -219,7 +220,7 @@ import videoAlbumApi from '../../api/videoAlbum'
 import commentApi from '../../api/comment'
 import usersApi from '../../api/users'
 import englishApi from '../../api/english'
-// import reviewLogApi from '../../api/reviewLog'
+import userActionLogApi from '../../api/userActionLog'
 
 const router = useRouter()
 
@@ -259,24 +260,62 @@ const roleTotal = computed(() => {
   return roleCounts.value.student + roleCounts.value.teacher + roleCounts.value.admin + roleCounts.value.other
 })
 
-// 模拟最近活动数据
-const recentActivities = ref([
-  { content: '新用户 user10@example.com 完成注册', time: '5分钟前', type: 'success', icon: User },
-  { content: '管理员添加了新词汇 "artificial intelligence"', time: '15分钟前', type: 'primary', icon: DocumentAdd },
-  { content: '用户 student5 完成了词汇复习', time: '30分钟前', type: 'info', icon: Reading },
-  { content: '新视频 "Vue3 进阶教程" 已上传', time: '1小时前', type: 'warning', icon: VideoCamera },
-  { content: '用户 teacher2 更新了课程内容', time: '2小时前', type: '', icon: Edit }
-])
+// 最近活动数据
+const recentActivities = ref<any[]>([])
+
+/**
+ * 格式化时间为相对时间
+ */
+const formatRelativeTime = (timeStr: string): string => {
+  if (!timeStr) return '未知时间'
+  
+  try {
+    const time = new Date(timeStr.replace(/-/g, '/'))
+    const now = new Date()
+    const diff = now.getTime() - time.getTime()
+    
+    const minutes = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+    
+    if (minutes < 1) return '刚刚'
+    if (minutes < 60) return `${minutes}分钟前`
+    if (hours < 24) return `${hours}小时前`
+    if (days < 7) return `${days}天前`
+    
+    return timeStr
+  } catch {
+    return timeStr
+  }
+}
+
+/**
+ * 根据 actionType 获取活动类型和图标
+ */
+const getActivityConfig = (actionType: string) => {
+  const config: Record<string, { type: string; icon: any }> = {
+    WATCH_VIDEO: { type: 'primary', icon: VideoPlay },
+    LOGIN: { type: 'success', icon: User },
+    LOGOUT: { type: 'info', icon: User },
+    LIKE: { type: 'warning', icon: Star },
+    FAVORITE: { type: 'warning', icon: Star },
+    COMMENT: { type: 'info', icon: ChatDotRound },
+    REGISTER: { type: 'success', icon: User },
+  }
+  
+  return config[actionType] || { type: '', icon: Document }
+}
 
 // 获取数据
 const fetchData = async () => {
   try {
-    const [videosRes, _albumsRes, commentsRes, usersRes, englishRes] = await Promise.all([
+    const [videosRes, _albumsRes, commentsRes, usersRes, englishRes, logsRes] = await Promise.all([
       videoApi.getAllVideos(),
       videoAlbumApi.getAllAlbums(),
       commentApi.getAllComments(),
       usersApi.getAllUsers(),
-      englishApi.getAllEnglish()
+      englishApi.getAllEnglish(),
+      userActionLogApi.getAll()  // 获取所有活动日志
     ])
 
     const users = Array.isArray(usersRes.data) ? usersRes.data : []
@@ -294,6 +333,29 @@ const fetchData = async () => {
       else nextRoleCounts.other += 1
     }
     roleCounts.value = nextRoleCounts
+
+    // 处理最近活动数据
+    if (Array.isArray(logsRes.data)) {
+      // 按时间倒序排序，取最近10条
+      const sortedLogs = logsRes.data
+        .sort((a: any, b: any) => {
+          const timeA = new Date(a.actionTime || 0).getTime()
+          const timeB = new Date(b.actionTime || 0).getTime()
+          return timeB - timeA
+        })
+        .slice(0, 10)
+
+      // 转换为活动列表格式
+      recentActivities.value = sortedLogs.map((log: any) => {
+        const config = getActivityConfig(log.actionType)
+        return {
+          content: log.actionContent || `${log.actionType} 操作`,
+          time: formatRelativeTime(log.actionTime),
+          type: config.type,
+          icon: config.icon
+        }
+      })
+    }
   } catch (error) {
     console.error('Fetch dashboard data failed:', error)
   }
