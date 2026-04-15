@@ -193,7 +193,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, onMounted, onUnmounted } from 'vue'
+import { computed, nextTick, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
@@ -366,46 +366,83 @@ const initUserGrowthChart = async () => {
   await nextTick()
   if (userGrowthChartRef.value) {
     userGrowthChart = echarts.init(userGrowthChartRef.value)
-    
-    // 模拟数据
-    const days = userGrowthPeriod.value === 'week' ? 7 : 30
-    const dates: string[] = []
-    const newUsers: number[] = []
-    const totalUsers: number[] = []
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      dates.push(`${date.getMonth() + 1}/${date.getDate()}`)
-      const newCount = Math.floor(Math.random() * 20) + 5
-      newUsers.push(newCount)
-      totalUsers.push(totalUsers.length > 0 ? totalUsers[totalUsers.length - 1] + newCount : 150)
-    }
 
-    userGrowthChart.setOption({
-      tooltip: { trigger: 'axis' },
-      legend: { data: ['新增用户', '累计用户'] },
-      grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-      xAxis: { type: 'category', boundaryGap: false, data: dates },
-      yAxis: { type: 'value' },
-      series: [
-        {
-          name: '新增用户',
-          type: 'line',
-          smooth: true,
-          areaStyle: { color: 'rgba(64, 158, 255, 0.1)' },
-          itemStyle: { color: '#409EFF' },
-          data: newUsers
-        },
-        {
-          name: '累计用户',
-          type: 'line',
-          smooth: true,
-          itemStyle: { color: '#67C23A' },
-          data: totalUsers
+    try {
+      // 获取所有用户数据
+      const usersRes = await usersApi.getAllUsers()
+      const users = Array.isArray(usersRes.data) ? usersRes.data : []
+
+      // 计算天数
+      const days = userGrowthPeriod.value === 'week' ? 7 : 30
+      const dates: string[] = []
+      const newUsers: number[] = []
+      const totalUsers: number[] = []
+
+      // 生成日期列表
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date()
+        date.setDate(date.getDate() - i)
+        dates.push(`${date.getMonth() + 1}/${date.getDate()}`)
+      }
+
+      // 统计每天新增用户数
+      const dateCountMap: Record<string, number> = {}
+      for (let i = 0; i < days; i++) {
+        const date = new Date()
+        date.setDate(date.getDate() - (days - 1 - i))
+        const dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD
+        dateCountMap[dateStr] = 0
+      }
+
+      // 遍历用户数据，统计每个日期的新增用户
+      users.forEach((user: any) => {
+        if (user.createdAt || user.create_ed) {
+          const createdAt = user.createdAt || user.create_ed
+          const dateStr = createdAt.split(' ')[0] || createdAt.split('T')[0]
+          if (dateCountMap.hasOwnProperty(dateStr)) {
+            dateCountMap[dateStr]++
+          }
         }
-      ]
-    })
+      })
+
+      // 构建数据数组
+      let cumulative = 0
+      const sortedDates = Object.keys(dateCountMap).sort()
+      sortedDates.forEach(dateStr => {
+        const newCount = dateCountMap[dateStr]
+        newUsers.push(newCount)
+        cumulative += newCount
+        totalUsers.push(cumulative)
+      })
+
+      userGrowthChart.setOption({
+        tooltip: { trigger: 'axis' },
+        legend: { data: ['新增用户', '累计用户'] },
+        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+        xAxis: { type: 'category', boundaryGap: false, data: dates },
+        yAxis: { type: 'value' },
+        series: [
+          {
+            name: '新增用户',
+            type: 'line',
+            smooth: true,
+            areaStyle: { color: 'rgba(64, 158, 255, 0.1)' },
+            itemStyle: { color: '#409EFF' },
+            data: newUsers
+          },
+          {
+            name: '累计用户',
+            type: 'line',
+            smooth: true,
+            itemStyle: { color: '#67C23A' },
+            data: totalUsers
+          }
+        ]
+      })
+    } catch (error) {
+      console.error('Failed to load user growth data:', error)
+      ElMessage.error('加载用户增长数据失败')
+    }
   }
 }
 
@@ -635,6 +672,11 @@ const handleResize = () => {
   memoryChart?.resize()
   wordCloudChart?.resize()
 }
+
+// 监听时间范围变化，重新渲染用户增长图表
+watch(userGrowthPeriod, () => {
+  initUserGrowthChart()
+})
 
 onMounted(async () => {
   await fetchData()

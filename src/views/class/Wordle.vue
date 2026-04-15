@@ -18,6 +18,13 @@
 
       <!-- 游戏控制区 -->
       <div class="game-controls">
+        <div class="vocabulary-source">
+          <el-radio-group v-model="vocabularySource" @change="changeVocabularySource">
+            <el-radio-button label="graduate">考研词汇</el-radio-button>
+            <el-radio-button label="today">今日学习词汇</el-radio-button>
+          </el-radio-group>
+        </div>
+
         <el-button-group>
           <el-button type="primary" @click="startNewGame" :icon="RefreshRight">新游戏</el-button>
           <el-button type="success" @click="showHint" :disabled="hintsRemaining === 0">提示 ({{ hintsRemaining }})</el-button>
@@ -164,6 +171,9 @@ import { ElMessage } from 'element-plus';
 import { RefreshRight, DataLine, Setting } from '@element-plus/icons-vue';
 import { loadGraduateWords, filterWordsByDifficulty } from '../../utils/wordLoader.ts';
 import gameRecordApi from '../../api/gameRecord';
+import userActionLogApi from '../../api/userActionLog';
+import englishApi from '../../api/english';
+import reviewLogApi  from '../../api/reviewLog.ts';
 import type { GameRecord } from '../../interface/gameRecord';
 
 export default defineComponent({
@@ -185,6 +195,9 @@ export default defineComponent({
     const showSettings = ref(false);
     const leaderboardLoading = ref(false);
     const rows = 7;
+
+    // 词汇来源：graduate-考研词汇，today-今日学习词汇
+    const vocabularySource = ref<'graduate' | 'today'>('graduate');
 
     // IME 处理
     const isComposing = ref(false);
@@ -305,17 +318,117 @@ export default defineComponent({
     // 从工具中加载单词
     const fetchEnglishList = async () => {
       try {
-        allWords.value = await loadGraduateWords();
-        if (!Array.isArray(allWords.value) || allWords.value.length === 0) {
-          ElMessage.error('未能加载单词列表，请检查文件是否存在或格式是否正确');
-          return;
+        if (vocabularySource.value === 'graduate') {
+          // 加载考研词汇
+          allWords.value = await loadGraduateWords();
+          if (!Array.isArray(allWords.value) || allWords.value.length === 0) {
+            ElMessage.error('未能加载单词列表，请检查文件是否存在或格式是否正确');
+            return;
+          }
+          updateFilteredWords();
+          ElMessage.success(`成功加载 ${allWords.value.length} 个考研单词`);
+        } else {
+          // 加载今日学习词汇
+          if (!userId) {
+            ElMessage.warning('请先登录后再使用今日学习词汇功能');
+            return;
+          }
+
+          // 获取今天的日期范围
+          const today = dayjs().format('YYYY-MM-DD');
+          const todayStart = `${today} 00:00:00`;
+          const todayEnd = `${today} 23:59:59`;
+
+          // 获取用户今天的所有行为日志
+          // const logsRes = await userActionLogApi.getByUserId(userId);
+          // const logsRes = await reviewLogApi.getReviewLogByUserId(userId);
+          const logsRes = await reviewLogApi.getAllReviewLogs();
+          const allLogs = logsRes.data || [];
+          console.log('allLogs', allLogs);
+          // 过滤今天的学习词汇记录
+          const todayLogs = allLogs.filter((log: any) => {
+            const logTime = log.lastReview;
+            return logTime >= todayStart && logTime <= todayEnd && log.userId == userId;
+          });
+          console.log(todayLogs);
+          if (todayLogs.length === 0) {
+            ElMessage.warning('今日暂无学习词汇记录');
+            allWords.value = [];
+            updateFilteredWords();
+            return;
+          }
+
+          // 从 actionContent 中提取词汇ID
+          const englishIds: number[] = [];
+          todayLogs.forEach((log: any) => {
+            // const content = log.actionContent || '';
+            // // 尝试从 actionContent 中提取 ID，格式可能是 "学习了词汇[ID:123]" 或包含 ID:数字
+            // const idMatch = content.match(/ID[:：](\d+)/);
+            // if (idMatch) {
+            //   const id = parseInt(idMatch[1], 10);
+            //   if (!isNaN(id) && !englishIds.includes(id)) {
+            //     englishIds.push(id);
+            //   }
+            // }
+            englishIds.push(log.egId);
+          });
+
+          if (englishIds.length === 0) {
+            ElMessage.warning('无法从学习记录中提取词汇ID');
+            allWords.value = [];
+            updateFilteredWords();
+            return;
+          }
+
+          // 获取词汇详情
+          const englishRes = await englishApi.getEnglishByIds(englishIds);
+          const englishList = englishRes.data || [];
+          console.log(englishList, 99999);
+
+          // 过滤只保留 coreKey == '单词' 的词汇
+          const wordsOnly = englishList.filter((item: any) => {
+            return item.coreKey === '单词';
+          });
+
+          // 在控制台打印今日学习词汇
+          console.log('今日学习词汇:', wordsOnly.map((item: any) => ({
+            id: item.egId,
+            word: item.content || item.vocabulary,
+            meaning: item.meaning || item.translation,
+            coreKey: item.coreKey
+          })));
+
+          allWords.value = wordsOnly.map((item: any) => ({
+            word: item.content || item.vocabulary,
+            meaning: item.meaning || item.translation || '暂无释义'
+          }));
+          console.log(allWords.value);
+          if (allWords.value.length === 0) {
+            ElMessage.warning('今日学习词汇中没有符合条件的单词');
+          } else {
+            ElMessage.success(`成功加载 ${allWords.value.length} 个今日学习单词`);
+          }
+
+          updateFilteredWords();
         }
-        updateFilteredWords();
-        ElMessage.success(`成功加载 ${allWords.value.length} 个考研单词`);
       } catch (err) {
         console.error(err);
         ElMessage.error('获取单词列表失败');
       }
+    };
+
+    // 切换词汇来源
+    const changeVocabularySource = () => {
+      // 保存设置
+      localStorage.setItem('wordleVocabularySource', vocabularySource.value);
+      // 重新加载词汇
+      fetchEnglishList();
+      // 开始新游戏
+      setTimeout(() => {
+        if (filteredWords.value.length > 0) {
+          startNewGame();
+        }
+      }, 500);
     };
 
     const updateFilteredWords = () => {
@@ -661,9 +774,12 @@ export default defineComponent({
 
     // 生命周期
     onMounted(async () => {
-      // 先恢复本地设置（难度）
+      // 先恢复本地设置（难度和词汇来源）
       const localDiff = localStorage.getItem('wordleDifficulty');
       if (localDiff) difficulty.value = localDiff;
+
+      const localVocabSource = localStorage.getItem('wordleVocabularySource') as 'graduate' | 'today' | null;
+      if (localVocabSource) vocabularySource.value = localVocabSource;
 
       // 加载单词并统计
       await fetchEnglishList();
@@ -698,6 +814,7 @@ export default defineComponent({
       shakeRow,
       isDarkMode,
       difficulty,
+      vocabularySource,
       hintsRemaining,
       targetWord,
       currentWordMeaning,
@@ -724,6 +841,7 @@ export default defineComponent({
       openLeaderboard,
       toggleTheme,
       changeDifficulty,
+      changeVocabularySource,
       // icons
       RefreshRight,
       DataLine,
@@ -764,6 +882,17 @@ export default defineComponent({
   margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 10px;
+}
+.vocabulary-source {
+  margin-bottom: 8px;
+}
+.vocabulary-source :deep(.el-radio-button__inner) {
+  padding: 8px 16px;
+  font-weight: 500;
+}
+.vocabulary-source :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
+  background-color: #409eff;
+  border-color: #409eff;
 }
 .game-grid {
   display: flex;

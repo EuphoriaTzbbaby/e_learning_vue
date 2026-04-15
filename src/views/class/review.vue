@@ -37,6 +37,30 @@
       </el-col>
     </el-row>
 
+    <!-- 复习计划日历 -->
+    <el-card shadow="hover" class="section-gap calendar-card">
+      <template #header>
+        <div class="calendar-header">
+          <b>📅 复习计划日历（待复习）</b>
+          <div class="calendar-legend">
+            <span class="legend-item"><span class="legend-dot legend-light"></span> 1-5个</span>
+            <span class="legend-item"><span class="legend-dot legend-medium"></span> 6-10个</span>
+            <span class="legend-item"><span class="legend-dot legend-heavy"></span> 11个以上</span>
+          </div>
+        </div>
+      </template>
+      <el-calendar v-model="calendarDate">
+        <template #date-cell="{ data }">
+          <div class="calendar-day" :class="getCalendarDayClass(data.day)">
+            <div class="day-number">{{ data.day.split('-')[2] }}</div>
+            <div v-if="getReviewCountForDate(data.day) > 0" class="review-count">
+              <el-badge :value="getReviewCountForDate(data.day)" type="primary" />
+            </div>
+          </div>
+        </template>
+      </el-calendar>
+    </el-card>
+
     <!-- 图表 -->
     <el-row :gutter="20" class="section-gap">
       <el-col :span="9">
@@ -186,6 +210,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch} from "vue";
 import reviewLogApi from "../../api/reviewLog";
+import reviewStateApi from "../../api/reviewState";
 import englishApi from "../../api/english";
 import * as echarts from "echarts";
 import * as XLSX from "xlsx";
@@ -193,6 +218,7 @@ import { Download, Picture, Reading, TrendCharts, Search, Refresh } from "@eleme
 import { ElMessage } from "element-plus";
 
 const allLogs = ref<any[]>([]);
+const allReviewStates = ref<any[]>([]);
 const todayLogs = ref<any[]>([]);
 const searchKeyword = ref("");
 const scoreFilter = ref<number | null>(null);
@@ -209,12 +235,44 @@ const exportingTable = ref(false);
 const exportingCharts = ref(false);
 const tableLoading = ref(false);
 
+// 日历相关
+const calendarDate = ref(new Date());
+
+/**
+ * 获取某一天的复习词汇数量（基于 nextReview 计划）
+ */
+const getReviewCountForDate = (dateStr: string): number => {
+  return allReviewStates.value.filter((state: any) => {
+    if (!state.nextReview) return false;
+    return state.nextReview.startsWith(dateStr);
+  }).length;
+};
+
+/**
+ * 获取日历单元格的样式类
+ */
+const getCalendarDayClass = (dateStr: string): string => {
+  const count = getReviewCountForDate(dateStr);
+  if (count === 0) return '';
+  if (count <= 5) return 'day-light';
+  if (count <= 10) return 'day-medium';
+  return 'day-heavy';
+};
+
 /** 获取日志 */
 const fetchLogs = async () => {
   tableLoading.value = true;
   try {
+    // 获取复习日志
     const res = await reviewLogApi.getAllReviewLogs();
     allLogs.value = res.data || [];
+
+    // 获取当前用户的所有复习状态（用于日历显示复习计划）
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null;
+    if (currentUser?.id) {
+      const statesRes = await reviewStateApi.getAllReviews(currentUser.id);
+      allReviewStates.value = statesRes.data || [];
+    }
 
     const logsDay = allLogs.value.filter((log: any) =>
       log.lastReview.startsWith(selectedDate.value)
@@ -552,5 +610,74 @@ const refreshTable = () => {
 }
 .ml-1 {
   margin-left: 4px;
+}
+
+/* 日历样式 */
+.calendar-card {
+  border-radius: 16px;
+}
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.calendar-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #6b7280;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.legend-light {
+  background-color: #dbeafe;
+}
+.legend-medium {
+  background-color: #93c5fd;
+}
+.legend-heavy {
+  background-color: #3b82f6;
+}
+.calendar-day {
+  min-height: 60px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+.day-number {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+}
+.review-count {
+  display: flex;
+  justify-content: center;
+}
+.day-light {
+  background-color: #eff6ff;
+}
+.day-medium {
+  background-color: #dbeafe;
+}
+.day-heavy {
+  background-color: #bfdbfe;
+}
+.calendar-day:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 </style>
