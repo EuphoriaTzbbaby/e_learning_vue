@@ -171,7 +171,7 @@ import { ElMessage } from 'element-plus';
 import { RefreshRight, DataLine, Setting } from '@element-plus/icons-vue';
 import { loadGraduateWords, filterWordsByDifficulty } from '../../utils/wordLoader.ts';
 import gameRecordApi from '../../api/gameRecord';
-import userActionLogApi from '../../api/userActionLog';
+// import userActionLogApi from '../../api/userActionLog';
 import englishApi from '../../api/english';
 import reviewLogApi  from '../../api/reviewLog.ts';
 import type { GameRecord } from '../../interface/gameRecord';
