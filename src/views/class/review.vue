@@ -41,11 +41,11 @@
     <el-card shadow="hover" class="section-gap calendar-card">
       <template #header>
         <div class="calendar-header">
-          <b>📅 复习计划日历（待复习）</b>
+          <b>📅 复习计划日历</b>
           <div class="calendar-legend">
-            <span class="legend-item"><span class="legend-dot legend-light"></span> 1-5个</span>
-            <span class="legend-item"><span class="legend-dot legend-medium"></span> 6-10个</span>
-            <span class="legend-item"><span class="legend-dot legend-heavy"></span> 11个以上</span>
+            <span class="legend-item"><span class="legend-dot legend-light"></span> 待复习 1-5个</span>
+            <span class="legend-item"><span class="legend-dot legend-medium"></span> 待复习 6-10个</span>
+            <span class="legend-item"><span class="legend-dot legend-heavy"></span> 待复习 11个以上</span>
           </div>
         </div>
       </template>
@@ -208,7 +208,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch} from "vue";
+import { ref, onMounted, computed, watch } from "vue";
+import dayjs from "dayjs";
 import reviewLogApi from "../../api/reviewLog";
 import reviewStateApi from "../../api/reviewState";
 import englishApi from "../../api/english";
@@ -239,12 +240,15 @@ const tableLoading = ref(false);
 const calendarDate = ref(new Date());
 
 /**
- * 获取某一天的复习词汇数量（基于 nextReview 计划）
+ * 获取某一天的待复习词汇数量（nextReview <= 该日期）
  */
 const getReviewCountForDate = (dateStr: string): number => {
+  if (!allReviewStates.value.length) return 0;
+  const targetDay = dayjs(dateStr);
   return allReviewStates.value.filter((state: any) => {
     if (!state.nextReview) return false;
-    return state.nextReview.startsWith(dateStr);
+    const nextDay = dayjs(state.nextReview);
+    return nextDay.isBefore(targetDay) || nextDay.isSame(targetDay, 'day');
   }).length;
 };
 
@@ -263,19 +267,19 @@ const getCalendarDayClass = (dateStr: string): string => {
 const fetchLogs = async () => {
   tableLoading.value = true;
   try {
-    // 获取复习日志
-    const res = await reviewLogApi.getAllReviewLogs();
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null;
+    if (!currentUser?.id) return;
+
+    // 获取当前用户的复习日志
+    const res = await reviewLogApi.getReviewLogByUserId(currentUser.id);
     allLogs.value = res.data || [];
 
     // 获取当前用户的所有复习状态（用于日历显示复习计划）
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null;
-    if (currentUser?.id) {
-      const statesRes = await reviewStateApi.getAllReviews(currentUser.id);
-      allReviewStates.value = statesRes.data || [];
-    }
+    const statesRes = await reviewStateApi.getAllReviews(currentUser.id);
+    allReviewStates.value = statesRes.data || [];
 
     const logsDay = allLogs.value.filter((log: any) =>
-      log.lastReview.startsWith(selectedDate.value)
+      dayjs(log.lastReview).format('YYYY-MM-DD') === selectedDate.value
     );
     if (logsDay.length === 0) {
       todayLogs.value = [];

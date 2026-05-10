@@ -2,7 +2,7 @@
   <el-container class="admin-layout">
     <el-aside :width="isCollapse ? '64px' : '220px'" class="aside-container">
       <div class="logo-container">
-        <img src="../assets/avatar.jpg" class="logo-img" alt="logo" />
+        <img src="https://api.dicebear.com/7.x/initials/svg?seed=Admin&backgroundColor=409eff&textColor=ffffff" class="logo-img" alt="logo" />
         <span v-show="!isCollapse" class="logo-text">后台管理系统</span>
       </div>
       <el-menu
@@ -58,7 +58,7 @@
           <span class="time-text">{{ nowText }}</span>
           <el-dropdown trigger="click">
             <div class="user-info">
-              <el-avatar :size="32" src="../assets/avatar.jpg" />
+              <el-avatar :size="32" src="https://api.dicebear.com/7.x/initials/svg?seed=Admin&backgroundColor=409eff&textColor=ffffff" />
               <span class="username">管理员</span>
               <el-icon><ArrowDown /></el-icon>
             </div>

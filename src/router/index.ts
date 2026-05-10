@@ -11,7 +11,7 @@ import SystemConfig from '../views/admin/SystemConfig.vue'
 import CourseManage from '../views/admin/CourseManage.vue' // 合集管理
 import VideoList from '../views/class/VideoList.vue'
 import VideoAlbumList from '../views/class/VideoAlbumList.vue'
-import Love from '../views/amusement/loveYou.vue'
+// import Love from '../views/amusement/loveYou.vue'
 import StudentLayout from '../layouts/StudentLayout.vue'
 import CourseList from '../views/class/CourseList.vue'
 import Comment from '../views/class/Comment.vue'
@@ -24,17 +24,17 @@ import TeacherVideoAlbumList from '../views/class/TeacherVideoAlbumList.vue'
 import English from '../views/class/English.vue'
 import EnglishGame from '../views/class/EnglishGame.vue'
 import Game from '../views/class/Game.vue'
-import XHSLayout from '../layouts/XHSLayout.vue'
-import Notes from '../views/xhs/notes.vue'
-import NoteComments from '../views/xhs/noteComments.vue'
-import Emotion from '../views/xhs/emotion.vue'
-import IpLocation from '../views/xhs/ipLocation.vue'
-import Gender from '../views/xhs/gender.vue'
+// import XHSLayout from '../layouts/XHSLayout.vue'
+// import Notes from '../views/xhs/notes.vue'
+// import NoteComments from '../views/xhs/noteComments.vue'
+// import Emotion from '../views/xhs/emotion.vue'
+// import IpLocation from '../views/xhs/ipLocation.vue'
+// import Gender from '../views/xhs/gender.vue'
 import EnglishGamePro from '../views/class/EnglishGamePro.vue'
 import Wordle from '../views/class/Wordle.vue'
 import Review from '../views/class/review.vue'
 import AiReading from '../views/class/AiReading.vue'
-import Sort from '../views/class/Sort.vue'
+// import Sort from '../views/class/Sort.vue'
 import EnglishWordFreq from '../views/class/EnglishWordFreq.vue'
 import Profile from '../views/class/Profile.vue'
 // @ts-ignore 忽略类型检查，因为Vue文件没有类型声明
@@ -49,43 +49,43 @@ const routes = [
     name: 'cf',
     component: Cf
   },
-  {
-    path: '/love',
-    name: 'love',
-    component: Love
-  },
-  {
-    path: '/xhs',
-    name: 'xhs',
-    component: XHSLayout,
-    children: [
-      {
-        path: 'notes',
-        name: 'notes',
-        component: Notes
-      },
-      {
-        path: 'noteComments',
-        name: 'noteComments',
-        component: NoteComments
-      },
-      {
-        path: 'emotion',
-        name: 'emotion',
-        component: Emotion
-      },
-      {
-        path: 'ipLocation',
-        name: 'ipLocation',
-        component: IpLocation
-      },
-      {
-        path: 'gender',
-        name: 'gender',
-        component: Gender
-      }
-    ]
-  },
+  // {
+  //   path: '/love',
+  //   name: 'love',
+  //   component: Love
+  // },
+  // {
+  //   path: '/xhs',
+  //   name: 'xhs',
+  //   component: XHSLayout,
+  //   children: [
+  //     {
+  //       path: 'notes',
+  //       name: 'notes',
+  //       component: Notes
+  //     },
+  //     {
+  //       path: 'noteComments',
+  //       name: 'noteComments',
+  //       component: NoteComments
+  //     },
+  //     {
+  //       path: 'emotion',
+  //       name: 'emotion',
+  //       component: Emotion
+  //     },
+  //     {
+  //       path: 'ipLocation',
+  //       name: 'ipLocation',
+  //       component: IpLocation
+  //     },
+  //     {
+  //       path: 'gender',
+  //       name: 'gender',
+  //       component: Gender
+  //     }
+  //   ]
+  // },
   {
     path: '/admin',
     name: 'admin',
@@ -179,11 +179,11 @@ const routes = [
     name: 'student',
     component: StudentLayout,
     children: [
-      {
-        path : 'sort',
-        name: 'sort',
-        component: Sort
-      },
+      // {
+      //   path : 'sort',
+      //   name: 'sort',
+      //   component: Sort
+      // },
       {
         path: 'courseList',
         name: 'courseList',

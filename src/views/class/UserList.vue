@@ -66,6 +66,11 @@
                 @selection-change="handleSelectionChange"
             >
                 <el-table-column type="selection" width="55" align="center" />
+                <el-table-column label="ID" width="80" align="center">
+                    <template #default="{ row }">
+                        <div class="user-id-badge">{{ row.id }}</div>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="username" label="用户名" width="120" align="center" />
                 <el-table-column prop="name" label="姓名" width="120" align="center" />
                 <el-table-column prop="email" label="邮箱" min-width="200" align="center" />
@@ -408,7 +413,7 @@ export default defineComponent({
             // 新增用户时设置默认头像和时间戳
             if (!isEditMode.value) {
                 if (!payload.avatar) {
-                    payload.avatar = 'avatar.jpg'
+                    payload.avatar = 'https://api.dicebear.com/7.x/adventurer/svg?seed=default&backgroundColor=b6e3f4'
                 }
                 payload.createdAt = dayjs().format('YYYY-MM-DD HH:mm:ss')
                 payload.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss')
@@ -764,5 +769,19 @@ export default defineComponent({
     margin-top: 20px;
     display: flex;
     justify-content: flex-end;
+}
+
+.user-id-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #409eff 0%, #66b1ff 100%);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
 }
 </style>

@@ -57,11 +57,11 @@
                         <el-tag size="small">{{ getAlbumName(row.albumId) }}</el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column prop="duration" label="时长" width="120" align="center">
+                <!-- <el-table-column prop="duration" label="时长" width="120" align="center">
                     <template #default="{ row }">
                         {{ formatDuration(row.duration) }}
                     </template>
-                </el-table-column>
+                </el-table-column> -->
                 <el-table-column prop="createTime" label="上传时间" width="180" align="center" sortable />
                 <el-table-column label="操作" width="220" align="center" fixed="right">
                     <template #default="{ row }">
@@ -229,6 +229,7 @@ export default defineComponent({
         const fetchAlbums = async () => {
             try {
                 const res = await videoAlbumApi.getAllAlbums();
+                
                 albums.value = Array.isArray(res.data) ? res.data : [];
                 
                 // 如果从合集管理页面跳转过来，自动选中合集

@@ -1,12 +1,12 @@
 <template>
   <div class="video-container">
     <h1>一口气看完《{{ title }}》完整版合集</h1>
-    <div class="video-meta">
+    <!-- <div class="video-meta">
       <span class="author">cww</span>
       <span class="views">9.8万 浏览</span>
       <span class="date">2025-03-28 22:12:24</span>
       <span class="copyright">未经许可授权，禁止转载</span>
-    </div>
+    </div> -->
 
     <div class="divider"></div>
 

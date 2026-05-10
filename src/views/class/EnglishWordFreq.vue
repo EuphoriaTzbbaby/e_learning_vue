@@ -5,7 +5,7 @@
         <h2>高频词汇推荐</h2>
         <p class="hint">
           基于系统中全部「english」记录的英文内容（content）统计出现次数（不含已逻辑删除；coreKey 中含「句子信息」的不计入），不拆分、不切割
-          content，相同全文合并计数，展示前 100 条。关键词与翻译取该内容首次出现记录中的字段。
+          content，展示前 100 条。
         </p>
         <el-button type="primary" :loading="loading" @click="load">刷新数据</el-button>
       </div>

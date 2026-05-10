@@ -13,6 +13,13 @@
       <el-skeleton :rows="5" animated />
     </div>
 
+    <!-- 空状态 -->
+    <div v-if="!loading && !finished && !current" class="empty-state">
+      <el-empty description="暂无待复习的单词">
+        <el-button type="primary" @click="goToEnglish">去背单词</el-button>
+      </el-empty>
+    </div>
+
     <!-- 学习卡片 -->
     <transition name="slide-fade" mode="out-in">
       <div v-if="!finished && current" :key="current.id" class="card">
@@ -244,6 +251,10 @@ function restart() {
 function goBack() {
     router.back();
 }
+
+function goToEnglish() {
+    router.push('/student/english');
+}
 // 在 <script setup> 里加：
 function getButtonType(label: string) {
   switch (label) {
@@ -260,6 +271,7 @@ function getButtonType(label: string) {
   }
 }
 onMounted(() => {
+  console.log(6667777888)
   fetchDue();
   window.addEventListener('keydown', onKey);
 });

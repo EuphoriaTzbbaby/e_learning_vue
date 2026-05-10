@@ -7,7 +7,7 @@
             <div class="card-header">
               <div class="title">词汇复习数据分析</div>
               <div class="header-actions">
-                <el-date-picker
+                <!-- <el-date-picker
                   v-model="dateRange"
                   type="daterange"
                   range-separator="~"
@@ -15,7 +15,7 @@
                   end-placeholder="结束日期"
                   value-format="YYYY-MM-DD"
                   @change="applyFilters"
-                />
+                /> -->
                 <el-select v-model="userFilter" placeholder="按用户筛选" clearable filterable @change="applyFilters">
                   <el-option
                     v-for="u in userOptions"
@@ -75,7 +75,7 @@
     </el-row>
 
     <el-row :gutter="20" class="section">
-      <el-col :span="12">
+      <!-- <el-col :span="12">
         <el-card shadow="hover" header="最难单词 Top 20（按平均分升序）">
           <el-table :data="topHardWords" stripe border style="width: 100%" v-loading="loading">
             <el-table-column label="单词" min-width="140">
@@ -88,7 +88,7 @@
             <el-table-column prop="count" label="次数" width="100" align="center" sortable />
           </el-table>
         </el-card>
-      </el-col>
+      </el-col> -->
       <el-col :span="12">
         <el-card shadow="hover" header="活跃用户 Top 20（按复习次数）">
           <el-table :data="topActiveUsers" stripe border style="width: 100%" v-loading="loading">
@@ -160,16 +160,16 @@ const normalizeScore = (s: any) => {
   return Math.max(0, Math.min(5, Math.round(n)))
 }
 
-const getEnglish = (egId: number) => englishByEgId.value.get(egId)
-const getWord = (egId: number) => getEnglish(egId)?.content || `#${egId}`
+// const getEnglish = (egId: number) => englishByEgId.value.get(egId)
+// const getWord = (egId: number) => getEnglish(egId)?.content || `#${egId}`
 
 const totalReviews = computed(() => filteredLogs.value.length)
-const activeUsers = computed(() => new Set(filteredLogs.value.map((l) => l.userId)).size)
-const activeWords = computed(() => new Set(filteredLogs.value.map((l) => l.egId)).size)
+const activeUsers = computed(() => new Set(allLogs.value.map((l) => l.userId)).size)
+const activeWords = computed(() => new Set(allLogs.value.map((l) => l.egId)).size)
 const rememberRate = computed(() => {
-  if (!totalReviews.value) return 0
+  if (!filteredLogs.value.length) return 0
   const ok = filteredLogs.value.filter((l) => normalizeScore(l.score) >= 4).length
-  return Math.round((ok / totalReviews.value) * 100)
+  return Math.round((ok / filteredLogs.value.length) * 100)
 })
 
 const trendRef = ref<HTMLElement | null>(null)
@@ -247,32 +247,32 @@ const buildScoreDist = () => {
   return buckets
 }
 
-const topHardWords = computed(() => {
-  const m = new Map<number, { egId: number; count: number; sum: number; min: number }>()
-  for (const log of filteredLogs.value) {
-    const s = normalizeScore(log.score)
-    const egId = log.egId
-    const cur = m.get(egId) || { egId, count: 0, sum: 0, min: 5 }
-    cur.count += 1
-    cur.sum += s
-    cur.min = Math.min(cur.min, s)
-    m.set(egId, cur)
-  }
-  return Array.from(m.values())
-    .map((x) => ({
-      egId: x.egId,
-      word: getWord(x.egId),
-      avgScore: Number((x.sum / x.count).toFixed(2)),
-      minScore: x.min,
-      count: x.count
-    }))
-    .sort((a, b) => a.avgScore - b.avgScore || b.count - a.count)
-    .slice(0, 20)
-})
+// const topHardWords = computed(() => {
+//   const m = new Map<number, { egId: number; count: number; sum: number; min: number }>()
+//   for (const log of allLogs.value) {
+//     const s = normalizeScore(log.score)
+//     const egId = log.egId
+//     const cur = m.get(egId) || { egId, count: 0, sum: 0, min: 5 }
+//     cur.count += 1
+//     cur.sum += s
+//     cur.min = Math.min(cur.min, s)
+//     m.set(egId, cur)
+//   }
+//   return Array.from(m.values())
+//     .map((x) => ({
+//       egId: x.egId,
+//       word: getWord(x.egId),
+//       avgScore: Number((x.sum / x.count).toFixed(2)),
+//       minScore: x.min,
+//       count: x.count
+//     }))
+//     .sort((a, b) => a.avgScore - b.avgScore || b.count - a.count)
+//     .slice(0, 20)
+// })
 
 const topActiveUsers = computed(() => {
   const m = new Map<number, { userId: number; count: number; sum: number }>()
-  for (const log of filteredLogs.value) {
+  for (const log of allLogs.value) {
     const s = normalizeScore(log.score)
     const userId = log.userId
     const cur = m.get(userId) || { userId, count: 0, sum: 0 }
@@ -331,8 +331,11 @@ const renderCharts = async () => {
         return lines.join('<br/>')
       }
     },
-    legend: { data: ['已记住(≥4)', '未记住(<4)', '记住率%', '7日均值(次数)', '7日均值(记住率)'] },
-    grid: { left: 44, right: 28, top: 48, bottom: 36 },
+    legend: { 
+      data: ['已记住(≥4)', '未记住(<4)', '记住率%', '7日均值(次数)', '7日均值(记住率)'],
+      top: 8
+    },
+    grid: { left: 44, right: 28, top: 52, bottom: 36 },
     xAxis: {
       type: 'category',
       data: days,
@@ -340,14 +343,27 @@ const renderCharts = async () => {
       axisTick: { alignWithLabel: true }
     },
     yAxis: [
-      { type: 'value', name: '次数' },
-      { type: 'value', name: '%', min: 0, max: 100 }
+      { 
+        type: 'value', 
+        name: '次数',
+        position: 'left',
+        splitLine: { show: true, lineStyle: { type: 'dashed', color: '#eee' } }
+      },
+      { 
+        type: 'value', 
+        name: '记住率(%)',
+        position: 'right',
+        min: 0, 
+        max: 100,
+        splitLine: { show: false }
+      }
     ],
     series: [
       {
         name: '已记住(≥4)',
         type: 'bar',
         stack: 'count',
+        yAxisIndex: 0,
         data: oks,
         itemStyle: { color: '#67C23A' },
         barMaxWidth: 18,
@@ -361,6 +377,7 @@ const renderCharts = async () => {
         name: '未记住(<4)',
         type: 'bar',
         stack: 'count',
+        yAxisIndex: 0,
         data: misses,
         itemStyle: { color: '#F56C6C' },
         barMaxWidth: 18
@@ -373,11 +390,13 @@ const renderCharts = async () => {
         smooth: true,
         symbol: 'circle',
         symbolSize: 6,
-        itemStyle: { color: '#409EFF' }
+        itemStyle: { color: '#409EFF' },
+        lineStyle: { width: 2 }
       },
       {
         name: '7日均值(次数)',
         type: 'line',
+        yAxisIndex: 0,
         data: avg7Counts,
         smooth: true,
         symbol: 'none',

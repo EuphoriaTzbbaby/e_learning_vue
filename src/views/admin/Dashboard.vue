@@ -69,34 +69,7 @@
         </el-card>
       </el-col>
 
-      <!-- 记忆曲线 -->
-      <el-col :span="8">
-        <el-card shadow="hover" class="chart-card">
-          <template #header>
-            <span class="card-title">学习记忆曲线</span>
-          </template>
-          <div ref="memoryChartRef" class="chart-box"></div>
-        </el-card>
-      </el-col>
-
-      <!-- 高频词汇 -->
-      <el-col :span="8">
-        <el-card shadow="hover" class="chart-card">
-          <template #header>
-            <div class="card-header">
-              <span class="card-title">高频词汇TOP10</span>
-              <el-button type="primary" link size="small" @click="goToEnglishManage">
-                查看详情
-              </el-button>
-            </div>
-          </template>
-          <div ref="wordCloudChartRef" class="chart-box"></div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 最近活动和快捷操作 -->
-    <el-row :gutter="20">
+      <!-- 最近活动 -->
       <el-col :span="16">
         <el-card shadow="hover" class="activity-card">
           <template #header>
@@ -125,32 +98,6 @@
             </el-timeline-item>
           </el-timeline>
           <el-empty v-if="recentActivities.length === 0" description="暂无活动记录" />
-        </el-card>
-      </el-col>
-
-      <el-col :span="8">
-        <el-card shadow="hover" class="quick-actions-card">
-          <template #header>
-            <span class="card-title">快捷操作</span>
-          </template>
-          <div class="quick-actions">
-            <el-button type="primary" class="action-btn" @click="goToUserManage">
-              <el-icon><UserFilled /></el-icon>
-              <span>用户管理</span>
-            </el-button>
-            <el-button type="success" class="action-btn" @click="goToEnglishManage">
-              <el-icon><Reading /></el-icon>
-              <span>词汇管理</span>
-            </el-button>
-            <el-button type="warning" class="action-btn" @click="exportAllData">
-              <el-icon><Download /></el-icon>
-              <span>导出报表</span>
-            </el-button>
-            <el-button type="info" class="action-btn" @click="refreshAllData">
-              <el-icon><Refresh /></el-icon>
-              <span>刷新数据</span>
-            </el-button>
-          </div>
         </el-card>
       </el-col>
     </el-row>
@@ -194,7 +141,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+// import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
 import * as XLSX from 'xlsx'
@@ -202,18 +149,14 @@ import {
   User,
   VideoCamera,
   VideoPlay,
-  // Collection,
   ChatDotRound,
   Reading,
   ArrowUp,
   ArrowDown,
   Download,
   More,
-  UserFilled,
-  Refresh,
   Star,
   Document
-  // Delete
 } from '@element-plus/icons-vue'
 import videoApi from '../../api/video'
 import videoAlbumApi from '../../api/videoAlbum'
@@ -222,20 +165,16 @@ import usersApi from '../../api/users'
 import englishApi from '../../api/english'
 import userActionLogApi from '../../api/userActionLog'
 
-const router = useRouter()
+// const router = useRouter()
 
 // 图表引用
 const userGrowthChartRef = ref<HTMLElement | null>(null)
 const visitChartRef = ref<HTMLElement | null>(null)
 const pieChartRef = ref<HTMLElement | null>(null)
-const memoryChartRef = ref<HTMLElement | null>(null)
-const wordCloudChartRef = ref<HTMLElement | null>(null)
 
 let userGrowthChart: echarts.ECharts | null = null
 let visitChart: echarts.ECharts | null = null
 let pieChart: echarts.ECharts | null = null
-let memoryChart: echarts.ECharts | null = null
-let wordCloudChart: echarts.ECharts | null = null
 
 const userGrowthPeriod = ref('week')
 const exportDialogVisible = ref(false)
@@ -452,27 +391,99 @@ const initVisitChart = async () => {
   if (visitChartRef.value) {
     visitChart = echarts.init(visitChartRef.value)
     
-    // 模拟数据
-    const courses = ['Vue3基础', 'React入门', 'TypeScript', 'Node.js', 'Python', '数据结构']
-    const visits = [1250, 980, 850, 720, 680, 590]
+    try {
+      // 获取所有数据
+      const [logsRes, videosRes, albumsRes] = await Promise.all([
+        userActionLogApi.getAll(),
+        videoApi.getAllVideos(),
+        videoAlbumApi.getAllAlbums()
+      ])
 
-    visitChart.setOption({
-      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-      grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-      xAxis: { type: 'category', data: courses, axisLabel: { rotate: 30 } },
-      yAxis: { type: 'value', name: '访问量' },
-      series: [{
-        type: 'bar',
-        barWidth: '60%',
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#409EFF' },
-            { offset: 1, color: '#66b1ff' }
-          ])
-        },
-        data: visits
-      }]
-    })
+      const logs = Array.isArray(logsRes.data) ? logsRes.data : []
+      const videos = Array.isArray(videosRes.data) ? videosRes.data : []
+      const albums = Array.isArray(albumsRes.data) ? albumsRes.data : []
+
+      // 构建视频ID到合集ID的映射
+      const videoToAlbum: Record<number, number> = {}
+      videos.forEach((v: any) => {
+        if (v.id && v.albumId) {
+          videoToAlbum[v.id] = v.albumId
+        }
+      })
+
+      // 构建合集ID到标题的映射
+      const albumIdToTitle: Record<number, string> = {}
+      albums.forEach((a: any) => {
+        if (a.id && a.title) {
+          albumIdToTitle[a.id] = a.title
+        }
+      })
+
+      // 统计每个合集的播放量
+      const albumPlayCount: Record<number, number> = {}
+      
+      logs.forEach((log: any) => {
+        // 匹配观看视频的日志，格式：观看了视频【ID:49，标题:疯狂动物城】
+        const match = log.actionContent?.match(/观看了视频【ID:(\d+)/)
+        if (match && log.actionType === 'WATCH_VIDEO') {
+          const videoId = parseInt(match[1])
+          const albumId = videoToAlbum[videoId]
+          if (albumId) {
+            albumPlayCount[albumId] = (albumPlayCount[albumId] || 0) + 1
+          }
+        }
+      })
+
+      // 转换为图表数据
+      const courses: string[] = []
+      const visits: number[] = []
+      
+      Object.entries(albumPlayCount)
+        .sort((a, b) => b[1] - a[1]) // 按播放量降序
+        .slice(0, 10) // 取前10个
+        .forEach(([albumId, count]) => {
+          const title = albumIdToTitle[Number(albumId)] || `合集${albumId}`
+          courses.push(title.length > 10 ? title.slice(0, 10) + '...' : title)
+          visits.push(count)
+        })
+
+      // 如果没有数据，显示提示
+      if (courses.length === 0) {
+        courses.push('暂无数据')
+        visits.push(0)
+      }
+
+      visitChart.setOption({
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+        xAxis: { type: 'category', data: courses, axisLabel: { rotate: 30 } },
+        yAxis: { type: 'value', name: '播放量' },
+        series: [{
+          type: 'bar',
+          barWidth: '60%',
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#409EFF' },
+              { offset: 1, color: '#66b1ff' }
+            ])
+          },
+          data: visits
+        }]
+      })
+    } catch (error) {
+      console.error('Failed to load visit data:', error)
+      visitChart.setOption({
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+        xAxis: { type: 'category', data: ['加载失败'], axisLabel: { rotate: 30 } },
+        yAxis: { type: 'value', name: '播放量' },
+        series: [{
+          type: 'bar',
+          barWidth: '60%',
+          data: [0]
+        }]
+      })
+    }
   }
 }
 
@@ -504,85 +515,15 @@ const initRoleChart = async () => {
   }
 }
 
-// 初始化记忆曲线图表
-const initMemoryChart = async () => {
-  await nextTick()
-  if (memoryChartRef.value) {
-    memoryChart = echarts.init(memoryChartRef.value)
-    
-    // 艾宾浩斯记忆曲线模拟数据
-    const hours = ['0h', '1h', '8h', '1d', '2d', '6d', '15d', '30d']
-    const retention = [100, 44, 36, 33, 28, 25, 21, 15]
-
-    memoryChart.setOption({
-      tooltip: { trigger: 'axis' },
-      grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-      xAxis: { type: 'category', data: hours, name: '时间' },
-      yAxis: { type: 'value', name: '记忆保留率(%)', max: 100 },
-      series: [{
-        type: 'line',
-        smooth: true,
-        areaStyle: { color: 'rgba(230, 162, 60, 0.1)' },
-        itemStyle: { color: '#E6A23C' },
-        data: retention,
-        markLine: {
-          data: [
-            { yAxis: 50, label: { position: 'end', formatter: '警戒线' }, lineStyle: { color: '#F56C6C', type: 'dashed' } }
-          ]
-        }
-      }]
-    })
-  }
-}
-
-// 初始化高频词汇图表
-const initWordCloudChart = async () => {
-  await nextTick()
-  if (wordCloudChartRef.value) {
-    wordCloudChart = echarts.init(wordCloudChartRef.value)
-    
-    // 模拟高频词汇数据
-    const words = [
-      { name: 'algorithm', value: 156 },
-      { name: 'function', value: 142 },
-      { name: 'variable', value: 128 },
-      { name: 'component', value: 115 },
-      { name: 'interface', value: 98 },
-      { name: 'module', value: 87 },
-      { name: 'promise', value: 76 },
-      { name: 'async', value: 65 },
-      { name: 'class', value: 58 },
-      { name: 'method', value: 52 }
-    ]
-
-    wordCloudChart.setOption({
-      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-      grid: { left: '3%', right: '4%', bottom: '3%', top: '10%', containLabel: true },
-      xAxis: { type: 'value' },
-      yAxis: { type: 'category', data: words.map(w => w.name).reverse() },
-      series: [{
-        type: 'bar',
-        data: words.map(w => w.value).reverse(),
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-            { offset: 0, color: '#E6A23C' },
-            { offset: 1, color: '#f0c78a' }
-          ])
-        }
-      }]
-    })
-  }
-}
-
 // 导出图表数据
 const exportChartData = (_type: string) => {
   ElMessage.info('图表数据导出功能开发中...')
 }
 
 // 导出所有数据
-const exportAllData = () => {
-  exportDialogVisible.value = true
-}
+// const exportAllData = () => {
+//   exportDialogVisible.value = true
+// }
 
 // 确认导出
 const confirmExport = async () => {
@@ -638,27 +579,15 @@ const confirmExport = async () => {
 }
 
 // 刷新所有数据
-const refreshAllData = async () => {
-  await fetchData()
-  await Promise.all([
-    initUserGrowthChart(),
-    initVisitChart(),
-    initRoleChart(),
-    initMemoryChart(),
-    initWordCloudChart()
-  ])
-  ElMessage.success('数据已刷新')
-}
-
-// 跳转到用户管理
-const goToUserManage = () => {
-  router.push('/admin/users')
-}
-
-// 跳转到词汇管理
-const goToEnglishManage = () => {
-  router.push('/admin/english')
-}
+// const refreshAllData = async () => {
+//   await fetchData()
+//   await Promise.all([
+//     initUserGrowthChart(),
+//     initVisitChart(),
+//     initRoleChart()
+//   ])
+//   ElMessage.success('数据已刷新')
+// }
 
 // 加载更多活动
 const loadMoreActivities = () => {
@@ -669,8 +598,6 @@ const handleResize = () => {
   userGrowthChart?.resize()
   visitChart?.resize()
   pieChart?.resize()
-  memoryChart?.resize()
-  wordCloudChart?.resize()
 }
 
 // 监听时间范围变化，重新渲染用户增长图表
@@ -683,9 +610,7 @@ onMounted(async () => {
   await Promise.all([
     initUserGrowthChart(),
     initVisitChart(),
-    initRoleChart(),
-    initMemoryChart(),
-    initWordCloudChart()
+    initRoleChart()
   ])
   window.addEventListener('resize', handleResize)
 })
@@ -695,8 +620,6 @@ onUnmounted(() => {
   userGrowthChart?.dispose()
   visitChart?.dispose()
   pieChart?.dispose()
-  memoryChart?.dispose()
-  wordCloudChart?.dispose()
 })
 </script>
 

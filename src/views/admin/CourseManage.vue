@@ -54,12 +54,12 @@
         <div class="card-header">
           <div class="title">合集管理</div>
           <div class="header-actions">
-            <el-button type="success" @click="exportCollections" :icon="Download">
+            <!-- <el-button type="success" @click="exportCollections" :icon="Download">
               导出合集
-            </el-button>
-            <el-button type="primary" @click="openAddDialog" :icon="Plus">
+            </el-button> -->
+            <!-- <el-button type="primary" @click="openAddDialog" :icon="Plus">
               新增合集
-            </el-button>
+            </el-button> -->
           </div>
         </div>
       </template>
@@ -122,15 +122,15 @@
         <el-table-column prop="createTime" label="创建时间" width="180" align="center" sortable />
         <el-table-column label="操作" width="360" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button link type="success" @click="openAddVideoDialog(row)" :icon="VideoPlay">添加视频</el-button>
-            <el-divider direction="vertical" />
+            <!-- <el-button link type="success" @click="openAddVideoDialog(row)" :icon="VideoPlay">添加视频</el-button>
+            <el-divider direction="vertical" /> -->
             <el-button link type="primary" @click="viewVideos(row)">查看视频</el-button>
             <el-divider direction="vertical" />
             <el-button link type="info" @click="openVideoStatsDialog(row)">播放详情</el-button>
             <el-divider direction="vertical" />
-            <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
+            <!-- <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
             <el-divider direction="vertical" />
-            <el-button link type="danger" @click="deleteCollection(row.id)">删除</el-button>
+            <el-button link type="danger" @click="deleteCollection(row.id)">删除</el-button> -->
           </template>
         </el-table-column>
       </el-table>
@@ -267,11 +267,11 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="duration" label="时长" width="100" align="center">
+          <!-- <el-table-column prop="duration" label="时长" width="100" align="center">
             <template #default="{ row }">
               {{ formatDuration(row.duration) }}
             </template>
-          </el-table-column>
+          </el-table-column> -->
         </el-table>
       </div>
     </el-dialog>
@@ -281,21 +281,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import {
   Reading,
   VideoPlay,
   SuccessFilled,
   UserFilled,
-  Download,
-  Plus,
+  // Download,
+  // Plus,
   Search,
   Refresh,
   Picture,
   Upload
 } from '@element-plus/icons-vue'
-import * as XLSX from 'xlsx'
-import dayjs from 'dayjs'
+// import * as XLSX from 'xlsx'
+// import dayjs from 'dayjs'
 import videoAlbumApi from '../../api/videoAlbum'
 import videoApi from '../../api/video'
 import userActionLogApi from '../../api/userActionLog'
@@ -422,12 +422,12 @@ const getPureTitle = (title: string) => {
 }
 
 // 格式化时长
-const formatDuration = (seconds: number) => {
-  if (!seconds) return '00:00'
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-}
+// const formatDuration = (seconds: number) => {
+//   if (!seconds) return '00:00'
+//   const mins = Math.floor(seconds / 60)
+//   const secs = seconds % 60
+//   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+// }
 
 const getVideoCount = (collectionId: number) => {
   return videos.value.filter(v => v.albumId === collectionId).length
@@ -465,22 +465,22 @@ const handleSelectionChange = (selection: Collection[]) => {
   selectedCollections.value = selection
 }
 
-const openAddDialog = () => {
-  isEditMode.value = false
-  formCollection.value = {
-    title: '',
-    description: '',
-    coverUrl: '',
-    createTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
-  }
-  dialogVisible.value = true
-}
+// const openAddDialog = () => {
+//   isEditMode.value = false
+//   formCollection.value = {
+//     title: '',
+//     description: '',
+//     coverUrl: '',
+//     createTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
+//   }
+//   dialogVisible.value = true
+// }
 
-const openEditDialog = (collection: Collection) => {
-  isEditMode.value = true
-  formCollection.value = { ...collection }
-  dialogVisible.value = true
-}
+// const openEditDialog = (collection: Collection) => {
+//   isEditMode.value = true
+//   formCollection.value = { ...collection }
+//   dialogVisible.value = true
+// }
 
 const submitCollection = async () => {
   if (!formRef.value) return
@@ -517,63 +517,63 @@ const viewVideos = (collection: Collection) => {
   })
 }
 
-const deleteCollection = async (id: number) => {
-  try {
-    await ElMessageBox.confirm('确定要删除该合集吗？此操作不可撤销。', '删除确认', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
+// const deleteCollection = async (id: number) => {
+//   try {
+//     await ElMessageBox.confirm('确定要删除该合集吗？此操作不可撤销。', '删除确认', {
+//       confirmButtonText: '确定',
+//       cancelButtonText: '取消',
+//       type: 'warning'
+//     })
     
-    await videoAlbumApi.deleteAlbum(id)
-    ElMessage.success('删除成功')
-    fetchCollections()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('Delete collection failed:', error)
-      ElMessage.error('删除失败')
-    }
-  }
-}
+//     await videoAlbumApi.deleteAlbum(id)
+//     ElMessage.success('删除成功')
+//     fetchCollections()
+//   } catch (error) {
+//     if (error !== 'cancel') {
+//       console.error('Delete collection failed:', error)
+//       ElMessage.error('删除失败')
+//     }
+//   }
+// }
 
-const exportCollections = () => {
-  const exportData = collections.value.map(c => ({
-    '合集标题': c.title,
-    '描述': c.description || '',
-    '视频数量': getVideoCount(c.id),
-    '创建时间': c.createTime
-  }))
+// const exportCollections = () => {
+//   const exportData = collections.value.map(c => ({
+//     '合集标题': c.title,
+//     '描述': c.description || '',
+//     '视频数量': getVideoCount(c.id),
+//     '创建时间': c.createTime
+//   }))
 
-  const ws = XLSX.utils.json_to_sheet(exportData)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, '合集列表')
-  XLSX.writeFile(wb, `合集数据_${dayjs().format('YYYY-MM-DD_HH-mm-ss')}.xlsx`)
-  ElMessage.success('导出成功')
-}
+//   const ws = XLSX.utils.json_to_sheet(exportData)
+//   const wb = XLSX.utils.book_new()
+//   XLSX.utils.book_append_sheet(wb, ws, '合集列表')
+//   XLSX.writeFile(wb, `合集数据_${dayjs().format('YYYY-MM-DD_HH-mm-ss')}.xlsx`)
+//   ElMessage.success('导出成功')
+// }
 
 // ========== 添加视频相关 ==========
-const openAddVideoDialog = async (collection: Collection) => {
-  currentCollection.value = collection
+// const openAddVideoDialog = async (collection: Collection) => {
+//   currentCollection.value = collection
   
-  // 计算当前合集下的视频数量
-  const currentAlbumVideos = videos.value.filter(v => v.albumId === collection.id)
-  const nextSortOrder = currentAlbumVideos.length + 1
+//   // 计算当前合集下的视频数量
+//   const currentAlbumVideos = videos.value.filter(v => v.albumId === collection.id)
+//   const nextSortOrder = currentAlbumVideos.length + 1
   
-  // 自动设置OSS目录为：e_learning/合集名称
-  const ossPrefix = `e_learning/${collection.title}`
+//   // 自动设置OSS目录为：e_learning/合集名称
+//   const ossPrefix = `e_learning/${collection.title}`
   
-  formVideo.value = {
-    albumId: collection.id,
-    title: '',
-    ossPrefix: ossPrefix,
-    ossKey: '',
-    videoUrl: '',
-    duration: 0,
-    sortOrder: nextSortOrder,
-    createTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
-  }
-  addVideoDialogVisible.value = true
-}
+//   formVideo.value = {
+//     albumId: collection.id,
+//     title: '',
+//     ossPrefix: ossPrefix,
+//     ossKey: '',
+//     videoUrl: '',
+//     duration: 0,
+//     sortOrder: nextSortOrder,
+//     createTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
+//   }
+//   addVideoDialogVisible.value = true
+// }
 
 const beforeVideoUpload = (file: File) => {
   if (!formVideo.value.ossPrefix) {

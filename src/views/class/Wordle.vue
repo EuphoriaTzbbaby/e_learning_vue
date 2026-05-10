@@ -3,7 +3,7 @@
     <el-card class="game-card" :body-style="{ padding: '20px' }">
       <!-- 游戏头部 -->
       <div class="game-header">
-        <h2>考研英语单词猜猜乐</h2>
+        <h2>英语单词猜猜乐</h2>
         <div class="game-stats">
           <el-tag type="info" effect="dark">胜率: {{ winRate }}%</el-tag>
           <el-tag type="success" effect="dark">连胜: {{ streak }}</el-tag>
@@ -13,16 +13,17 @@
         <div class="header-actions">
           <el-button type="primary" link :icon="DataLine" @click="showStats = true">游戏统计</el-button>
           <el-button type="success" link :icon="Setting" @click="openLeaderboard">排行榜</el-button>
+          <el-button type="info" link :icon="InfoFilled" @click="showRules = true">游戏规则</el-button>
         </div>
       </div>
 
       <!-- 游戏控制区 -->
       <div class="game-controls">
         <div class="vocabulary-source">
-          <el-radio-group v-model="vocabularySource" @change="changeVocabularySource">
-            <el-radio-button label="graduate">考研词汇</el-radio-button>
-            <el-radio-button label="today">今日学习词汇</el-radio-button>
-          </el-radio-group>
+          <el-tag type="success" effect="dark" size="large">
+            <el-icon><Collection /></el-icon>
+            谜底来自今日学习词汇
+          </el-tag>
         </div>
 
         <el-button-group>
@@ -160,6 +161,61 @@
         </template>
       </el-dialog>
 
+      <!-- 游戏规则弹窗 -->
+      <el-dialog v-model="showRules" title="游戏规则" width="550px">
+        <div class="rules-content">
+          <el-collapse>
+            <el-collapse-item title="游戏目标" name="1">
+              <p>猜出隐藏的单词。你有 <strong>7 次机会</strong>，每次猜测必须是有效的单词。</p>
+            </el-collapse-item>
+            <el-collapse-item title="颜色提示" name="2">
+              <div class="color-hint">
+                <div class="hint-item">
+                  <span class="color-box correct"></span>
+                  <span><strong>绿色</strong> - 字母位置正确</span>
+                </div>
+                <div class="hint-item">
+                  <span class="color-box present"></span>
+                  <span><strong>黄色</strong> - 字母存在但位置不对</span>
+                </div>
+                <div class="hint-item">
+                  <span class="color-box absent"></span>
+                  <span><strong>灰色</strong> - 字母不在单词中</span>
+                </div>
+              </div>
+            </el-collapse-item>
+            <el-collapse-item title="难度选择" name="3">
+              <p>选择不同的单词长度进行挑战：</p>
+              <ul>
+                <li><strong>3字母</strong> - 入门级，最简单</li>
+                <li><strong>4-6字母</strong> - 中等难度</li>
+                <li><strong>7-8字母</strong> - 困难</li>
+                <li><strong>9-10字母</strong> - 专家级，极具挑战</li>
+              </ul>
+            </el-collapse-item>
+            <el-collapse-item title="词汇来源" name="4">
+              <p><strong>谜底来源</strong>：每日谜底来自你当天学习的词汇</p>
+              <p><strong>验证词库</strong>：使用考研英语词汇库验证输入是否有效</p>
+            </el-collapse-item>
+            <el-collapse-item title="提示功能" name="5">
+              <p>游戏提供 <strong>2 次提示机会</strong>，每次会随机显示一个未填字母的正确位置。</p>
+              <p class="tip">提示不会影响游戏结果，只是帮助你继续猜测。</p>
+            </el-collapse-item>
+            <el-collapse-item title="统计功能" name="6">
+              <p>游戏会自动记录你的统计数据，包括：</p>
+              <ul>
+                <li>总游戏次数</li>
+                <li>胜率和最高连胜</li>
+                <li>排行榜排名（基于胜率）</li>
+              </ul>
+            </el-collapse-item>
+          </el-collapse>
+        </div>
+        <template #footer>
+          <el-button type="primary" @click="showRules = false">知道了</el-button>
+        </template>
+      </el-dialog>
+
     </el-card>
   </div>
 </template>
@@ -168,7 +224,7 @@
 import dayjs from 'dayjs';
 import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue';
 import { ElMessage } from 'element-plus';
-import { RefreshRight, DataLine, Setting } from '@element-plus/icons-vue';
+import { RefreshRight, DataLine, Setting, InfoFilled, Collection } from '@element-plus/icons-vue';
 import { loadGraduateWords, filterWordsByDifficulty } from '../../utils/wordLoader.ts';
 import gameRecordApi from '../../api/gameRecord';
 // import userActionLogApi from '../../api/userActionLog';
@@ -178,7 +234,7 @@ import type { GameRecord } from '../../interface/gameRecord';
 
 export default defineComponent({
   name: 'WordleGame',
-  components: { RefreshRight, DataLine, Setting },
+  components: { RefreshRight, DataLine, Setting, InfoFilled, Collection },
   setup() {
     // --- 基本状态 ---
     const gameStatus = ref<'playing' | 'won' | 'lost'>('playing');
@@ -193,11 +249,12 @@ export default defineComponent({
     const hintsRemaining = ref(2);
     const showStats = ref(false);
     const showSettings = ref(false);
+    const showRules = ref(false);
     const leaderboardLoading = ref(false);
     const rows = 7;
 
-    // 词汇来源：graduate-考研词汇，today-今日学习词汇
-    const vocabularySource = ref<'graduate' | 'today'>('graduate');
+    // 考研词汇池（用于验证用户输入）
+    const graduateWordsPool = ref<Set<string>>(new Set());
 
     // IME 处理
     const isComposing = ref(false);
@@ -236,7 +293,7 @@ export default defineComponent({
 
     // 单词列表
     const allWords = ref<Array<{ word: string; meaning: string }>>([]);
-    const filteredWords = ref<string[]>([]);
+    const filteredWords = ref<string[]>();
 
     // 计算属性
     const winRate = computed(() => (gamesPlayed.value ? Math.round((gamesWon.value / gamesPlayed.value) * 100) : 0));
@@ -318,117 +375,79 @@ export default defineComponent({
     // 从工具中加载单词
     const fetchEnglishList = async () => {
       try {
-        if (vocabularySource.value === 'graduate') {
-          // 加载考研词汇
-          allWords.value = await loadGraduateWords();
-          if (!Array.isArray(allWords.value) || allWords.value.length === 0) {
-            ElMessage.error('未能加载单词列表，请检查文件是否存在或格式是否正确');
-            return;
-          }
-          updateFilteredWords();
-          ElMessage.success(`成功加载 ${allWords.value.length} 个考研单词`);
-        } else {
-          // 加载今日学习词汇
-          if (!userId) {
-            ElMessage.warning('请先登录后再使用今日学习词汇功能');
-            return;
-          }
+        // 先加载考研词汇作为验证词库
+        const graduateWords = await loadGraduateWords();
+        graduateWordsPool.value = new Set(graduateWords.map(w => w.word.toLowerCase()));
+        
+        // 加载今日学习词汇作为谜底
+        if (!userId) {
+          ElMessage.warning('请先登录后再使用游戏功能');
+          filteredWords.value = undefined;
+          return;
+        }
 
-          // 获取今天的日期范围
-          const today = dayjs().format('YYYY-MM-DD');
-          const todayStart = `${today} 00:00:00`;
-          const todayEnd = `${today} 23:59:59`;
+        // 获取今天的日期范围
+        const today = dayjs().format('YYYY-MM-DD');
+        const todayStart = `${today} 00:00:00`;
+        const todayEnd = `${today} 23:59:59`;
 
-          // 获取用户今天的所有行为日志
-          // const logsRes = await userActionLogApi.getByUserId(userId);
-          // const logsRes = await reviewLogApi.getReviewLogByUserId(userId);
-          const logsRes = await reviewLogApi.getAllReviewLogs();
-          const allLogs = logsRes.data || [];
-          console.log('allLogs', allLogs);
-          // 过滤今天的学习词汇记录
-          const todayLogs = allLogs.filter((log: any) => {
-            const logTime = log.lastReview;
-            return logTime >= todayStart && logTime <= todayEnd && log.userId == userId;
-          });
-          console.log(todayLogs);
-          if (todayLogs.length === 0) {
-            ElMessage.warning('今日暂无学习词汇记录');
-            allWords.value = [];
-            updateFilteredWords();
-            return;
-          }
+        const logsRes = await reviewLogApi.getAllReviewLogs();
+        console.log('logsRes', logsRes, 8888888888);
+        const allLogs = logsRes.data || [];
+        
+        // 过滤今天的学习词汇记录
+        const todayLogs = allLogs.filter((log: any) => {
+          const logTime = log.lastReview;
+          return logTime >= todayStart && logTime <= todayEnd && log.userId == userId;
+        });
 
-          // 从 actionContent 中提取词汇ID
-          const englishIds: number[] = [];
-          todayLogs.forEach((log: any) => {
-            // const content = log.actionContent || '';
-            // // 尝试从 actionContent 中提取 ID，格式可能是 "学习了词汇[ID:123]" 或包含 ID:数字
-            // const idMatch = content.match(/ID[:：](\d+)/);
-            // if (idMatch) {
-            //   const id = parseInt(idMatch[1], 10);
-            //   if (!isNaN(id) && !englishIds.includes(id)) {
-            //     englishIds.push(id);
-            //   }
-            // }
+        if (todayLogs.length === 0) {
+          ElMessage.warning('今日暂无学习词汇记录，请先完成学习任务');
+          allWords.value = [];
+          filteredWords.value = [];
+          return;
+        }
+
+        // 从日志中提取词汇ID
+        const englishIds: number[] = [];
+        todayLogs.forEach((log: any) => {
+          if (log.egId && !englishIds.includes(log.egId)) {
             englishIds.push(log.egId);
-          });
-
-          if (englishIds.length === 0) {
-            ElMessage.warning('无法从学习记录中提取词汇ID');
-            allWords.value = [];
-            updateFilteredWords();
-            return;
           }
+        });
 
-          // 获取词汇详情
-          const englishRes = await englishApi.getEnglishByIds(englishIds);
-          const englishList = englishRes.data || [];
-          console.log(englishList, 99999);
+        if (englishIds.length === 0) {
+          ElMessage.warning('无法从学习记录中提取词汇');
+          allWords.value = [];
+          filteredWords.value = [];
+          return;
+        }
 
-          // 过滤只保留 coreKey == '单词' 的词汇
-          const wordsOnly = englishList.filter((item: any) => {
-            return item.coreKey === '单词';
-          });
+        // 获取词汇详情
+        const englishRes = await englishApi.getEnglishByIds(englishIds);
+        const englishList = englishRes.data || [];
 
-          // 在控制台打印今日学习词汇
-          console.log('今日学习词汇:', wordsOnly.map((item: any) => ({
-            id: item.egId,
-            word: item.content || item.vocabulary,
-            meaning: item.meaning || item.translation,
-            coreKey: item.coreKey
-          })));
+        // 过滤只保留 coreKey == '单词' 的词汇
+        const wordsOnly = englishList.filter((item: any) => {
+          return item.coreKey === '单词';
+        });
 
-          allWords.value = wordsOnly.map((item: any) => ({
-            word: item.content || item.vocabulary,
-            meaning: item.meaning || item.translation || '暂无释义'
-          }));
-          console.log(allWords.value);
-          if (allWords.value.length === 0) {
-            ElMessage.warning('今日学习词汇中没有符合条件的单词');
-          } else {
-            ElMessage.success(`成功加载 ${allWords.value.length} 个今日学习单词`);
-          }
+        allWords.value = wordsOnly.map((item: any) => ({
+          word: (item.content || item.vocabulary || '').toLowerCase(),
+          meaning: item.meaning || item.translation || '暂无释义'
+        }));
 
-          updateFilteredWords();
+        updateFilteredWords();
+        
+        if (allWords.value.length === 0) {
+          ElMessage.warning('今日学习词汇中没有符合条件的单词');
+        } else {
+          ElMessage.success(`谜底来自今日学习的 ${allWords.value.length} 个词汇`);
         }
       } catch (err) {
         console.error(err);
         ElMessage.error('获取单词列表失败');
       }
-    };
-
-    // 切换词汇来源
-    const changeVocabularySource = () => {
-      // 保存设置
-      localStorage.setItem('wordleVocabularySource', vocabularySource.value);
-      // 重新加载词汇
-      fetchEnglishList();
-      // 开始新游戏
-      setTimeout(() => {
-        if (filteredWords.value.length > 0) {
-          startNewGame();
-        }
-      }, 500);
     };
 
     const updateFilteredWords = () => {
@@ -448,6 +467,7 @@ export default defineComponent({
       // 随机选择目标单词（小写）
       const randomIndex = Math.floor(Math.random() * filteredWords.value.length);
       targetWord.value = filteredWords.value[randomIndex];
+      console.log('🎯 谜底:', targetWord.value);
 
       // 释义
       const wordObj = allWords.value.find(item => item.word.toLowerCase() === targetWord.value);
@@ -510,8 +530,8 @@ export default defineComponent({
 
       const guess = gameGrid.value[currentRow.value].map(c => c.letter || '').join('').toLowerCase();
 
-      // 检查是否存在于过滤表（有效单词）
-      if (!filteredWords.value.includes(guess)) {
+      // 用考研词汇验证输入是否有效
+      if (!graduateWordsPool.value.has(guess)) {
         // 将整行标为 incorrect 并抖动
         for (let i = 0; i < cols; i++) {
           gameGrid.value[currentRow.value][i].status = 'incorrect';
@@ -778,9 +798,6 @@ export default defineComponent({
       const localDiff = localStorage.getItem('wordleDifficulty');
       if (localDiff) difficulty.value = localDiff;
 
-      const localVocabSource = localStorage.getItem('wordleVocabularySource') as 'graduate' | 'today' | null;
-      if (localVocabSource) vocabularySource.value = localVocabSource;
-
       // 加载单词并统计
       await fetchEnglishList();
       resetGuessDistribution();
@@ -788,7 +805,9 @@ export default defineComponent({
       initGameGrid();
 
       // 若有可用单词立即开始游戏
-      if (filteredWords.value.length > 0) startNewGame();
+      if (filteredWords.value && filteredWords.value.length > 0) {
+        startNewGame();
+      }
 
       // 事件监听
       window.addEventListener('keydown', handleKeyDown);
@@ -814,12 +833,12 @@ export default defineComponent({
       shakeRow,
       isDarkMode,
       difficulty,
-      vocabularySource,
       hintsRemaining,
       targetWord,
       currentWordMeaning,
       showStats,
       showSettings,
+      showRules,
       leaderboardLoading,
       leaderboardRows,
       indexMethodLeaderboard,
@@ -841,11 +860,12 @@ export default defineComponent({
       openLeaderboard,
       toggleTheme,
       changeDifficulty,
-      changeVocabularySource,
       // icons
       RefreshRight,
       DataLine,
-      Setting
+      Setting,
+      InfoFilled,
+      Collection
     };
   }
 });
@@ -1031,4 +1051,68 @@ export default defineComponent({
 .dark-mode .stat-label { color: #d3d3d3; }
 .dark-mode .guess-bar-container { background-color: #2b2b2b; }
 .dark-mode .guess-bar-fill { background-color: #538d4e; }
+
+/* 游戏规则样式 */
+.rules-content {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.rules-content p {
+  margin: 8px 0;
+  color: #606266;
+  line-height: 1.6;
+}
+
+.rules-content ul {
+  margin: 8px 0;
+  padding-left: 20px;
+  color: #606266;
+}
+
+.rules-content li {
+  margin: 4px 0;
+  line-height: 1.6;
+}
+
+.rules-content strong {
+  color: #409eff;
+}
+
+.color-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.hint-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-box {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.color-box.correct {
+  background-color: #6aaa64;
+}
+
+.color-box.present {
+  background-color: #c9b458;
+}
+
+.color-box.absent {
+  background-color: #787c7e;
+}
+
+.tip {
+  color: #909399;
+  font-size: 13px;
+}
 </style>

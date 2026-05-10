@@ -2,7 +2,7 @@
   <div class="english-page">
     <el-card class="english-card">
       <div class="header">
-        <h2>English cnm fuck mlgb</h2>
+        <h2>English 词汇学习</h2>
         <div class="header-actions">
           <el-input
             v-model="searchVal"

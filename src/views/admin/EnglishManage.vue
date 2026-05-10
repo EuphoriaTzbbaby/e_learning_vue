@@ -2,7 +2,7 @@
   <div class="english-manage">
     <!-- 统计卡片 -->
     <el-row :gutter="20" class="stat-cards">
-      <el-col :span="8">
+      <el-col :span="12">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-content">
             <div class="stat-info">
@@ -13,25 +13,14 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="12">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-content">
             <div class="stat-info">
-              <div class="stat-label">高频词汇</div>
-              <div class="stat-value">{{ frequentWords.length }}</div>
+              <div class="stat-label">总用户数</div>
+              <div class="stat-value">{{ userCount }}</div>
             </div>
-            <el-icon class="stat-icon" style="color: #E6A23C"><Star /></el-icon>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-content">
-            <div class="stat-info">
-              <div class="stat-label">已推荐</div>
-              <div class="stat-value">{{ recommendedCount }}</div>
-            </div>
-            <el-icon class="stat-icon" style="color: #67C23A"><Promotion /></el-icon>
+            <el-icon class="stat-icon" style="color: #67C23A"><UserFilled /></el-icon>
           </div>
         </el-card>
       </el-col>
@@ -118,54 +107,6 @@
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="高频词汇" name="frequent">
-          <el-alert
-            title="高频词汇说明"
-            type="info"
-            :closable="false"
-            style="margin-bottom: 16px"
-          >
-            统计所有用户词汇本中的高频词汇，并可以推荐给全体用户学习
-          </el-alert>
-
-          <el-table :data="frequentWords" border stripe>
-            <el-table-column prop="content" label="单词" min-width="180">
-              <template #default="{ row }">
-                <span class="word">{{ row.content }}</span>
-                <el-tag v-if="row.isRecommended" type="success" size="small" style="margin-left: 8px">
-                  已推荐
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="translation" label="翻译" min-width="220" show-overflow-tooltip />
-            <el-table-column prop="frequency" label="学习次数" width="120" align="center" sortable>
-              <template #default="{ row }">
-                <el-tag type="warning">{{ row.frequency }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="200" align="center">
-              <template #default="{ row }">
-                <el-button 
-                  v-if="!row.isRecommended" 
-                  type="primary" 
-                  size="small"
-                  @click="recommendWord(row)"
-                >
-                  推荐给全体用户
-                </el-button>
-                <el-button 
-                  v-else 
-                  type="info" 
-                  size="small"
-                  @click="cancelRecommend(row)"
-                >
-                  取消推荐
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-tab-pane>
-
         <el-tab-pane label="词汇统计" name="stats">
           <el-row :gutter="20">
             <el-col :span="12">
@@ -210,11 +151,10 @@ import type { English } from '../../interface/english'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Reading,
-  Star,
-  Promotion,
   Download,
   Search,
-  Refresh
+  Refresh,
+  UserFilled
 } from '@element-plus/icons-vue'
 
 const loading = ref(false)
@@ -298,16 +238,10 @@ const pagedRows = computed(() => {
 const rawCount = computed(() => rawRows.value.length)
 const uniqueCount = computed(() => uniqueRows.value.length)
 const duplicateCount = computed(() => Math.max(0, rawCount.value - uniqueCount.value))
-const recommendedCount = computed(() => frequentWords.value.filter(w => w.isRecommended).length)
-
-// 模拟高频词汇数据
-const frequentWords = ref<any[]>([
-  { content: 'algorithm', translation: '算法', frequency: 156, isRecommended: true },
-  { content: 'function', translation: '函数', frequency: 142, isRecommended: true },
-  { content: 'variable', translation: '变量', frequency: 128, isRecommended: false },
-  { content: 'component', translation: '组件', frequency: 115, isRecommended: false },
-  { content: 'interface', translation: '接口', frequency: 98, isRecommended: false }
-])
+const userCount = computed(() => {
+  const uniqueUsers = new Set(rawRows.value.map(r => r.userId).filter(Boolean))
+  return uniqueUsers.size
+})
 
 const fetchList = async () => {
   loading.value = true
@@ -398,47 +332,6 @@ const deleteWord = async (word: English) => {
     if (error !== 'cancel') {
       console.error('Delete word failed:', error)
       ElMessage.error('删除失败')
-    }
-  }
-}
-
-const recommendWord = async (word: any) => {
-  try {
-    // 这里应该调用API将词汇推荐给全体用户
-    await ElMessageBox.confirm(
-      `确定要将"${word.content}"推荐给全体用户吗？`,
-      '推荐确认',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'info'
-      }
-    )
-    word.isRecommended = true
-    ElMessage.success('推荐成功')
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('Recommend failed:', error)
-    }
-  }
-}
-
-const cancelRecommend = async (word: any) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要取消"${word.content}"的推荐吗？`,
-      '取消推荐',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    word.isRecommended = false
-    ElMessage.success('已取消推荐')
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('Cancel recommend failed:', error)
     }
   }
 }

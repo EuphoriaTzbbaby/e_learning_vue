@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- 背景圆形 -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f5deb3"/>
+      <stop offset="100%" style="stop-color:#deb887"/>
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="95" fill="url(#bgGrad)"/>
+  
+  <!-- 身体 -->
+  <ellipse cx="100" cy="130" rx="55" ry="50" fill="url(#bodyGrad)"/>
+  
+  <!-- 头部羽毛 -->
+  <ellipse cx="100" cy="80" rx="50" ry="45" fill="url(#bodyGrad)"/>
+  
+  <!-- 耳朵羽毛（角） -->
+  <path d="M55 50 Q60 30 75 45" fill="#c4a574" stroke="#b8956e" stroke-width="2"/>
+  <path d="M145 50 Q140 30 125 45" fill="#c4a574" stroke="#b8956e" stroke-width="2"/>
+  
+  <!-- 白色眼圈 -->
+  <ellipse cx="75" cy="80" rx="22" ry="24" fill="white"/>
+  <ellipse cx="125" cy="80" rx="22" ry="24" fill="white"/>
+  
+  <!-- 大眼睛 -->
+  <circle cx="75" cy="82" r="14" fill="#2d3748"/>
+  <circle cx="125" cy="82" r="14" fill="#2d3748"/>
+  
+  <!-- 眼睛高光 -->
+  <circle cx="70" cy="78" r="5" fill="white"/>
+  <circle cx="120" cy="78" r="5" fill="white"/>
+  <circle cx="78" cy="84" r="2" fill="white"/>
+  <circle cx="128" cy="84" r="2" fill="white"/>
+  
+  <!-- 喙 -->
+  <path d="M92 95 L100 110 L108 95 Q100 100 92 95" fill="#f6ad55"/>
+  <path d="M92 95 L100 100 L108 95" fill="#ed8936"/>
+  
+  <!-- 胸部花纹 -->
+  <ellipse cx="100" cy="135" rx="30" ry="25" fill="#faf5eb"/>
+  <path d="M80 130 Q100 125 120 130" stroke="#ddd" stroke-width="1" fill="none"/>
+  <path d="M82 140 Q100 135 118 140" stroke="#ddd" stroke-width="1" fill="none"/>
+  <path d="M85 150 Q100 145 115 150" stroke="#ddd" stroke-width="1" fill="none"/>
+  
+  <!-- 翅膀 -->
+  <ellipse cx="50" cy="120" rx="15" ry="35" fill="#c4a574"/>
+  <ellipse cx="150" cy="120" rx="15" ry="35" fill="#c4a574"/>
+  
+  <!-- 小爪子 -->
+  <path d="M80 175 L75 185 M80 175 L80 186 M80 175 L85 185" stroke="#f6ad55" stroke-width="3" stroke-linecap="round"/>
+  <path d="M120 175 L115 185 M120 175 L120 186 M120 175 L125 185" stroke="#f6ad55" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- 帽子/学位帽 -->
+  <path d="M60 45 L100 15 L140 45 Q100 50 60 45" fill="#1a365d"/>
+  <circle cx="100" cy="12" r="5" fill="#ffd700"/>
+  <rect x="55" y="42" width="90" height="8" rx="2" fill="#1a365d"/>
+</svg>
