@@ -22,7 +22,7 @@
         <div class="vocabulary-source">
           <el-tag type="success" effect="dark" size="large">
             <el-icon><Collection /></el-icon>
-            谜底来自今日学习词汇
+            谜底来自今日学习单词
           </el-tag>
         </div>
 
@@ -150,7 +150,7 @@
             align="center"
             :index="indexMethodLeaderboard"
           />
-          <el-table-column prop="userId" label="玩家" width="180" align="center" />
+          <el-table-column prop="username" label="玩家" width="180" align="center" />
           <el-table-column prop="winRateStr" label="胜率" width="140" align="center" />
           <el-table-column prop="wins" label="胜利总场数" width="180" align="center" />
           <el-table-column prop="played" label="总场数" width="130" align="center" />
@@ -229,6 +229,7 @@ import { loadGraduateWords, filterWordsByDifficulty } from '../../utils/wordLoad
 import gameRecordApi from '../../api/gameRecord';
 // import userActionLogApi from '../../api/userActionLog';
 import englishApi from '../../api/english';
+import usersApi from '../../api/users';
 import reviewLogApi  from '../../api/reviewLog.ts';
 import type { GameRecord } from '../../interface/gameRecord';
 
@@ -278,8 +279,12 @@ export default defineComponent({
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null;
     const userId = currentUser?.id as number | undefined;
 
+    // 用户映射：userId -> username
+    const userMap = ref<Map<number, string>>(new Map());
+
     type LeaderboardRow = {
       userId: number;
+      username: string;
       played: number;
       wins: number;
       // 展示字段：胜率保留两位小数（字符串）
@@ -319,6 +324,13 @@ export default defineComponent({
     const loadLeaderboard = async () => {
       leaderboardLoading.value = true;
       try {
+        // 获取用户列表构建映射
+        const userRes = await usersApi.getAllUsers();
+        const users = userRes.data || [];
+        for (const u of users) {
+          userMap.value.set(u.id, u.username);
+        }
+
         const res = await gameRecordApi.getAllGameRecords();
         const records = (res.data ?? []) as GameRecord[];
 
@@ -335,8 +347,10 @@ export default defineComponent({
           .map(([uid, s]) => {
             const winRate = s.played ? (s.wins / s.played) * 100 : 0;
             const winRateRounded = Math.round(winRate * 100) / 100; // 两位小数
+            const username = userMap.value.get(uid) || `用户${uid}`;
             return {
               userId: uid,
+              username,
               played: s.played,
               wins: s.wins,
               winRateRounded,
@@ -442,7 +456,7 @@ export default defineComponent({
         if (allWords.value.length === 0) {
           ElMessage.warning('今日学习词汇中没有符合条件的单词');
         } else {
-          ElMessage.success(`谜底来自今日学习的 ${allWords.value.length} 个词汇`);
+          ElMessage.success(`谜底来自今日学习的 ${allWords.value.length} 个单词`);
         }
       } catch (err) {
         console.error(err);

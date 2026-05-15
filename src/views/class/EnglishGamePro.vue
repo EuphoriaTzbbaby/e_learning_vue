@@ -1,5 +1,35 @@
 <template>
   <div class="study-page" v-loading="loading">
+    <!-- 右上角快捷键提示 -->
+    <!-- <div class="shortcut-panel">
+      <div class="shortcut-header">
+        <span class="shortcut-icon">⌨️</span>
+        <span class="shortcut-title">快捷键</span>
+      </div>
+      <div class="shortcut-list">
+        <div class="shortcut-item">
+          <kbd>1</kbd>
+          <span class="label familiar">熟悉</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>2</kbd>
+          <span class="label recognize">认识</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>3</kbd>
+          <span class="label blur">模糊</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>4</kbd>
+          <span class="label unknown">不认识</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>Space</kbd>
+          <span class="label translate">翻译</span>
+        </div>
+      </div>
+    </div> -->
+
     <!-- 进度条 -->
     <transition name="fade">
       <div class="progress-bar" v-if="!loading && total > 0">
@@ -62,11 +92,11 @@
 
         <!-- 快捷键提示 -->
         <div class="shortcut-hint">
-          <span class="hint-tag">1 = 熟悉</span>
-          <span class="hint-tag">2 = 认识</span>
-          <span class="hint-tag">3 = 模糊</span>
-          <span class="hint-tag">4 = 不认识</span>
-          <span class="hint-tag">空格 = 翻译</span>
+          <span class="hint-tag"><kbd>5</kbd> 熟悉</span>
+          <span class="hint-tag"><kbd>4</kbd> 认识</span>
+          <span class="hint-tag"><kbd>2</kbd> 模糊</span>
+          <span class="hint-tag"><kbd>0</kbd> 不认识</span>
+          <!-- <span class="hint-tag"><kbd class="space-key">Space</kbd> 翻译</span> -->
         </div>
       </div>
     </transition>
@@ -235,10 +265,10 @@ const update = async (reviewState: ReviewState, score: number) => {
 // ====== 键盘操作 ======
 function onKey(e: KeyboardEvent) {
   if (finished.value) return;
-  if (e.key === '1') rate('熟悉');
-  else if (e.key === '2') rate('认识');
-  else if (e.key === '3') rate('模糊');
-  else if (e.key === '4') rate('不认识');
+  if (e.key === '5') rate('熟悉');
+  else if (e.key === '4') rate('认识');
+  else if (e.key === '2') rate('模糊');
+  else if (e.key === '0') rate('不认识');
   else if (e.key === ' ') revealed.value = !revealed.value;
 }
 
@@ -288,7 +318,87 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.3); /* 半透明 */
   backdrop-filter: blur(10px); /* 毛玻璃效果 */
   border-radius: 20px;
+  position: relative;
 }
+
+/* 右上角快捷键提示面板 */
+.shortcut-panel {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  min-width: 140px;
+}
+
+.shortcut-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.shortcut-icon {
+  font-size: 14px;
+}
+
+.shortcut-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 600;
+  color: #333;
+  background: linear-gradient(180deg, #fafafa 0%, #e8e8e8 100%);
+  border: 1px solid #ccc;
+  border-bottom-width: 3px;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+kbd.space-key {
+  min-width: 50px;
+  font-size: 10px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.label.familiar { color: #166534; }
+.label.recognize { color: #1e40af; }
+.label.blur { color: #92400e; }
+.label.unknown { color: #991b1b; }
+.label.translate { color: #7c3aed; }
 
 
 .progress-bar {
@@ -352,15 +462,22 @@ onUnmounted(() => {
   margin-top: 25px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
   justify-content: center;
 }
 .hint-tag {
-  background: #eef2ff;
-  padding: 4px 10px;
-  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  padding: 6px 12px;
+  border-radius: 10px;
   font-size: 12px;
   color: #555;
+  border: 1px solid #e2e8f0;
+}
+.hint-tag kbd {
+  font-size: 10px;
 }
 
 .finished {

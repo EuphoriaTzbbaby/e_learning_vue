@@ -26,8 +26,8 @@
                     class="filter-item search-input"
                 />
                 <el-select v-model="roleFilter" placeholder="角色筛选" clearable class="filter-item role-select">
-                    <el-option label="学生" value="student" />
-                    <el-option label="管理员" value="admin" />
+                    <el-option label="普通用户" value="student" />
+                    <el-option label="系统管理员" value="admin" />
                 </el-select>
                 <el-button type="primary" @click="handleSearch" :icon="Search">查询</el-button>
                 <el-button @click="resetSearch" :icon="Refresh">重置</el-button>
@@ -65,8 +65,8 @@
                 stripe
                 @selection-change="handleSelectionChange"
             >
-                <el-table-column type="selection" width="55" align="center" />
-                <el-table-column label="ID" width="80" align="center">
+                <!-- <el-table-column type="selection" width="55" align="center" /> -->
+                <el-table-column label="用户编号" width="100" align="center">
                     <template #default="{ row }">
                         <div class="user-id-badge">{{ row.id }}</div>
                     </template>
@@ -76,7 +76,7 @@
                 <el-table-column prop="email" label="邮箱" min-width="200" align="center" />
                 <el-table-column prop="role" label="角色" width="100" align="center">
                     <template #default="{ row }">
-                        <el-tag :type="getRoleTag(row.role)">{{ row.role }}</el-tag>
+                        <el-tag :type="getRoleTag(row.role)">{{ row.role === 'student' ? '普通用户' : '系统管理员' }}</el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column prop="state" label="状态" width="100" align="center">
@@ -160,8 +160,8 @@
 
                 <el-form-item label="角色" required>
                     <el-radio-group v-model="formUser.role">
-                        <el-radio label="student">学生</el-radio>
-                        <el-radio label="admin">管理员</el-radio>
+                        <el-radio label="student">普通用户</el-radio>
+                        <el-radio label="admin">系统管理员</el-radio>
                     </el-radio-group>
                 </el-form-item>
             </el-form>

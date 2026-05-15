@@ -44,7 +44,7 @@
             </el-col>
             <el-col :span="6">
               <el-card shadow="never" class="metric-card">
-                <div class="metric-title">涉及单词数</div>
+                <div class="metric-title">涉及词汇数</div>
                 <div class="metric-value">{{ activeWords }}</div>
               </el-card>
             </el-col>
@@ -61,7 +61,7 @@
 
     <el-row :gutter="20" class="section">
       <el-col :span="16">
-        <el-card shadow="hover" header="最近 30 天复习趋势">
+        <el-card shadow="hover" header="复习记录">
           <div v-if="totalReviews > 0" ref="trendRef" class="chart"></div>
           <el-empty v-else description="暂无复习数据" />
         </el-card>
@@ -92,7 +92,7 @@
       <el-col :span="12">
         <el-card shadow="hover" header="活跃用户 Top 20（按复习次数）">
           <el-table :data="topActiveUsers" stripe border style="width: 100%" v-loading="loading">
-            <el-table-column prop="label" label="用户" min-width="220" />
+            <el-table-column prop="label" label="用户名" min-width="220" />
             <el-table-column prop="count" label="次数" width="100" align="center" sortable />
             <el-table-column prop="avgScore" label="平均分" width="100" align="center" sortable />
             <el-table-column label="状态" width="100" align="center">
@@ -309,30 +309,20 @@ const renderCharts = async () => {
   trendChart.setOption({
     tooltip: {
       trigger: 'axis',
-      axisPointer: { type: 'shadow' },
       formatter: (params: any) => {
         const items = Array.isArray(params) ? params : []
         const axis = items[0]?.axisValue || ''
-        const total = counts[days.indexOf(axis)] ?? 0
         const ok = oks[days.indexOf(axis)] ?? 0
         const miss = misses[days.indexOf(axis)] ?? 0
-        const rate = rates[days.indexOf(axis)] ?? 0
-        const avgC = avg7Counts[days.indexOf(axis)]
-        const avgR = avg7Rates[days.indexOf(axis)]
-        const lines = [
+        return [
           `<div style="font-weight:700;margin-bottom:6px;">${axis}</div>`,
-          `复习次数：${total}`,
-          `已记住(≥4)：${ok}`,
-          `未记住(<4)：${miss}`,
-          `记住率：${rate}%`
-        ]
-        if (avgC !== null && avgC !== undefined) lines.push(`7日均值(次数)：${avgC}`)
-        if (avgR !== null && avgR !== undefined) lines.push(`7日均值(记住率)：${avgR}%`)
-        return lines.join('<br/>')
+          `≥4分：${ok}`,
+          `<4分：${miss}`
+        ].join('<br/>')
       }
     },
     legend: { 
-      data: ['已记住(≥4)', '未记住(<4)', '记住率%', '7日均值(次数)', '7日均值(记住率)'],
+      data: ['≥4分', '<4分'],
       top: 8
     },
     grid: { left: 44, right: 28, top: 52, bottom: 36 },
@@ -342,76 +332,31 @@ const renderCharts = async () => {
       axisLabel: { formatter: (v: string) => v.slice(5) },
       axisTick: { alignWithLabel: true }
     },
-    yAxis: [
-      { 
-        type: 'value', 
-        name: '次数',
-        position: 'left',
-        splitLine: { show: true, lineStyle: { type: 'dashed', color: '#eee' } }
-      },
-      { 
-        type: 'value', 
-        name: '记住率(%)',
-        position: 'right',
-        min: 0, 
-        max: 100,
-        splitLine: { show: false }
-      }
-    ],
+    yAxis: { 
+      type: 'value', 
+      name: '复习次数',
+      splitLine: { show: true, lineStyle: { type: 'dashed', color: '#eee' } }
+    },
     series: [
       {
-        name: '已记住(≥4)',
-        type: 'bar',
-        stack: 'count',
-        yAxisIndex: 0,
-        data: oks,
-        itemStyle: { color: '#67C23A' },
-        barMaxWidth: 18,
-        markArea: {
-          silent: true,
-          itemStyle: { color: 'rgba(64, 158, 255, 0.08)' },
-          data: weekendRanges.map(([s, e]) => [{ xAxis: s }, { xAxis: e }])
-        }
-      },
-      {
-        name: '未记住(<4)',
-        type: 'bar',
-        stack: 'count',
-        yAxisIndex: 0,
-        data: misses,
-        itemStyle: { color: '#F56C6C' },
-        barMaxWidth: 18
-      },
-      {
-        name: '记住率%',
+        name: '≥4分',
         type: 'line',
-        yAxisIndex: 1,
-        data: rates,
+        data: oks,
         smooth: true,
         symbol: 'circle',
         symbolSize: 6,
-        itemStyle: { color: '#409EFF' },
+        itemStyle: { color: '#67C23A' },
         lineStyle: { width: 2 }
       },
       {
-        name: '7日均值(次数)',
+        name: '<4分',
         type: 'line',
-        yAxisIndex: 0,
-        data: avg7Counts,
+        data: misses,
         smooth: true,
-        symbol: 'none',
-        lineStyle: { type: 'dashed', width: 2, color: '#E6A23C' },
-        itemStyle: { color: '#E6A23C' }
-      },
-      {
-        name: '7日均值(记住率)',
-        type: 'line',
-        yAxisIndex: 1,
-        data: avg7Rates,
-        smooth: true,
-        symbol: 'none',
-        lineStyle: { type: 'dashed', width: 2, color: '#A855F7' },
-        itemStyle: { color: '#A855F7' }
+        symbol: 'circle',
+        symbolSize: 6,
+        itemStyle: { color: '#F56C6C' },
+        lineStyle: { width: 2 }
       }
     ]
   })
@@ -419,12 +364,12 @@ const renderCharts = async () => {
   scoreChart.setOption({
     tooltip: { trigger: 'axis' },
     grid: { left: 40, right: 20, top: 20, bottom: 30 },
-    xAxis: { type: 'category', data: ['0', '1', '2', '3', '4', '5'], name: '分数' },
+    xAxis: { type: 'category', data: ['0', '2', '4', '5'], name: '分数' },
     yAxis: { type: 'value', name: '次数' },
     series: [
       {
         type: 'bar',
-        data: buckets,
+        data: [buckets[0], buckets[2], buckets[4], buckets[5]],
         itemStyle: { color: '#E6A23C' }
       }
     ]

@@ -83,7 +83,7 @@
         stripe
         @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection" width="55" align="center" />
+        <!-- <el-table-column type="selection" width="55" align="center" /> -->
         <el-table-column label="封面" width="120" align="center">
           <template #default="{ row }">
             <el-image 

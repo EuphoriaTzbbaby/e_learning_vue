@@ -4,7 +4,7 @@
     <div class="hero">
       <div class="hero-left">
         <h2>📖 AI 阅读理解生成器</h2>
-        <p>从你复习的单词中生成精炼英文阅读，配题目与翻译。</p>
+        <p>从你复习的词汇中生成精炼英文阅读，配题目与翻译。</p>
       </div>
             <div class="controls">
         <el-date-picker
@@ -19,7 +19,7 @@
       </div>
       <div class="hero-right">
         <el-button type="primary" round @click="loadWords" :loading="loadingWords">
-          提取单词
+          提取词汇
         </el-button>
         <el-button
           type="success"
@@ -158,9 +158,10 @@ const generateReading = async () => {
     // 限制单词数量，避免 prompt 过长
     const limitedWords = words.value.slice(0, 40)
     const cap = Math.max(80, words.value.length * 4)
+    //  中文翻译 (Chinese translation for each paragraph)\n4) 
     const message = `Please generate an English reading comprehension article that naturally includes the following English words: ${limitedWords.join(
       ', '
-    )}. Output in Markdown with sections:\n\n1) Title (English)\n2) English Text (the main passage). Total English words should not exceed ${cap} words.\n3) 中文翻译 (Chinese translation for each paragraph)\n4) 5 multiple-choice comprehension questions (A-D) in English, followed by an Answers & Explanations section (English answers & one-sentence explanation per question).\n\nRequirements: Except the Chinese translation section, other sections must be entirely in English. Keep language natural and questions distinguishable.`
+    )}. Output in Markdown with sections:\n\n1) Title (English)\n2) English Text (the main passage). Total English words should not exceed ${cap} words.\n3) 5 multiple-choice comprehension questions (A-D) in English, followed by an Answers & Explanations section (English answers & one-sentence explanation per question).\n\nRequirements: Except the Chinese translation section, other sections must be entirely in English. Keep language natural and questions distinguishable.`
 
     const systemPrompt = `You are an English tutoring assistant. Output clean, structured Markdown. Except for the Chinese translation section, everything should be in English. Provide the answer key in this format:\n1) B — Because ...\n2) C — ...`
 

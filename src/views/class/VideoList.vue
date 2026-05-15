@@ -46,7 +46,7 @@
                 border 
                 stripe
             >
-                <el-table-column prop="id" label="ID" width="80" align="center" sortable />
+                <el-table-column prop="id" label="视频编号" width="100" align="center" sortable />
                 <el-table-column prop="title" label="视频标题" min-width="200" align="center">
                     <template #default="{ row }">
                         <span class="video-title">{{ row.title.replace('.mp4', '') }}</span>

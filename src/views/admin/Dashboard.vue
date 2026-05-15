@@ -8,11 +8,6 @@
             <div class="stat-info">
               <div class="stat-title">{{ card.title }}</div>
               <div class="stat-value">{{ card.value }}</div>
-              <div class="stat-trend" :class="card.trend > 0 ? 'up' : 'down'">
-                <el-icon v-if="card.trend > 0"><ArrowUp /></el-icon>
-                <el-icon v-else><ArrowDown /></el-icon>
-                <span>{{ Math.abs(card.trend) }}%</span>
-              </div>
             </div>
             <el-icon class="stat-icon" :style="{ color: card.color }">
               <component :is="card.icon" />
@@ -75,10 +70,10 @@
           <template #header>
             <div class="card-header">
               <span class="card-title">最近活动</span>
-              <el-button text @click="loadMoreActivities">
+              <!-- <el-button text @click="loadMoreActivities">
                 <el-icon><More /></el-icon>
                 查看更多
-              </el-button>
+              </el-button> -->
             </div>
           </template>
           <el-timeline>
@@ -90,10 +85,10 @@
               placement="top"
             >
               <div class="activity-content">
-                <el-icon class="activity-icon">
+                <!-- <el-icon class="activity-icon">
                   <component :is="activity.icon" />
-                </el-icon>
-                <span>{{ activity.content }}</span>
+                </el-icon> -->
+                <span>{{ activity.content  }}</span>
               </div>
             </el-timeline-item>
           </el-timeline>
@@ -151,8 +146,6 @@ import {
   VideoPlay,
   ChatDotRound,
   Reading,
-  ArrowUp,
-  ArrowDown,
   Download,
   More,
   Star,
@@ -188,10 +181,10 @@ const exportForm = ref({
 
 // 统计卡片
 const statCards = ref([
-  { title: '总用户数', value: '0', icon: User, color: '#409EFF', trend: 12.5 },
-  { title: '视频总数', value: '0', icon: VideoCamera, color: '#67C23A', trend: 8.3 },
-  { title: '词汇总数', value: '0', icon: Reading, color: '#E6A23C', trend: -2.1 },
-  { title: '总评论数', value: '0', icon: ChatDotRound, color: '#F56C6C', trend: 15.8 }
+  { title: '总用户数', value: '0', icon: User, color: '#409EFF' },
+  { title: '视频总数', value: '0', icon: VideoCamera, color: '#67C23A' },
+  { title: '词汇总数', value: '0', icon: Reading, color: '#E6A23C' },
+  { title: '总评论数', value: '0', icon: ChatDotRound, color: '#F56C6C' }
 ])
 
 const roleCounts = ref({ student: 0, teacher: 0, admin: 0, other: 0 })
@@ -258,10 +251,14 @@ const fetchData = async () => {
     ])
 
     const users = Array.isArray(usersRes.data) ? usersRes.data : []
+    const videos = Array.isArray(videosRes.data) ? videosRes.data : []
+    const english = Array.isArray(englishRes.data) ? englishRes.data : []
+    const comments = Array.isArray(commentsRes.data) ? commentsRes.data : []
+    
     statCards.value[0].value = users.length.toString()
-    statCards.value[1].value = Array.isArray(videosRes.data) ? videosRes.data.length.toString() : '0'
-    statCards.value[2].value = Array.isArray(englishRes.data) ? englishRes.data.length.toString() : '0'
-    statCards.value[3].value = Array.isArray(commentsRes.data) ? commentsRes.data.length.toString() : '0'
+    statCards.value[1].value = videos.length.toString()
+    statCards.value[2].value = english.length.toString()
+    statCards.value[3].value = comments.length.toString()
 
     const nextRoleCounts = { student: 0, teacher: 0, admin: 0, other: 0 }
     for (const u of users) {
@@ -284,11 +281,22 @@ const fetchData = async () => {
         })
         .slice(0, 10)
 
+      // 格式化活动内容，去除ID显示
+      const formatActivityContent = (content: string) => {
+        if (!content) return ''
+        // 处理"观看了视频【ID:53，标题:变化中的英语】"格式
+        const videoMatch = content.match(/观看了视频【ID:\d+，标题:(.+)】/)
+        if (videoMatch) {
+          return `观看了${videoMatch[1]}`
+        }
+        return content
+      }
+
       // 转换为活动列表格式
       recentActivities.value = sortedLogs.map((log: any) => {
         const config = getActivityConfig(log.actionType)
         return {
-          content: log.actionContent || `${log.actionType} 操作`,
+          content: formatActivityContent(log.actionContent) || `${log.actionType} 操作`,
           time: formatRelativeTime(log.actionTime),
           type: config.type,
           icon: config.icon
@@ -505,9 +513,9 @@ const initRoleChart = async () => {
         emphasis: { label: { show: true, fontSize: 16, fontWeight: 'bold' } },
         labelLine: { show: false },
         data: [
-          { value: roleCounts.value.student, name: '学生', itemStyle: { color: '#409EFF' } },
-          { value: roleCounts.value.teacher, name: '教师', itemStyle: { color: '#E6A23C' } },
-          { value: roleCounts.value.admin, name: '管理员', itemStyle: { color: '#F56C6C' } },
+          { value: roleCounts.value.student, name: '普通用户', itemStyle: { color: '#409EFF' } },
+          // { value: roleCounts.value.teacher, name: '教师', itemStyle: { color: '#E6A23C' } },
+          { value: roleCounts.value.admin, name: '系统管理员', itemStyle: { color: '#F56C6C' } },
           ...(roleCounts.value.other > 0 ? [{ value: roleCounts.value.other, name: '其他', itemStyle: { color: '#909399' } }] : [])
         ].filter(item => item.value > 0)
       }]
@@ -658,21 +666,6 @@ onUnmounted(() => {
   font-weight: bold;
   color: #303133;
   margin-bottom: 4px;
-}
-
-.stat-trend {
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  gap: 2px;
-}
-
-.stat-trend.up {
-  color: #67C23A;
-}
-
-.stat-trend.down {
-  color: #F56C6C;
 }
 
 .stat-icon {

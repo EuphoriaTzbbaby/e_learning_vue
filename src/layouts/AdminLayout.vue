@@ -48,23 +48,23 @@
           </el-breadcrumb>
         </div>
         <div class="header-right">
-          <div class="theme-switch" @click="toggleTheme">
+          <!-- <div class="theme-switch" @click="toggleTheme">
             <el-icon>
               <Moon v-if="theme === 'dark'" />
               <Sunny v-else />
             </el-icon>
             <span class="theme-text">{{ theme === 'dark' ? '黑夜' : '白天' }}</span>
-          </div>
+          </div> -->
           <span class="time-text">{{ nowText }}</span>
           <el-dropdown trigger="click">
             <div class="user-info">
               <el-avatar :size="32" src="https://api.dicebear.com/7.x/initials/svg?seed=Admin&backgroundColor=409eff&textColor=ffffff" />
-              <span class="username">管理员</span>
+              <span class="username">系统管理员</span>
               <el-icon><ArrowDown /></el-icon>
             </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="refreshAdminData">刷新数据</el-dropdown-item>
+                <!-- <el-dropdown-item @click="refreshAdminData">刷新数据</el-dropdown-item> -->
                 <el-dropdown-item divided @click="logout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -85,7 +85,7 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+// import { ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { 
   Collection, 
@@ -95,14 +95,14 @@ import {
   ChatLineRound, 
   Odometer,
   Reading,
-  Sunny,
-  Moon,
+  // Sunny,
+  // Moon,
   Notebook,
   TrendCharts,
   Expand,
   Fold,
   ArrowDown,
-  Setting
+  // Setting
 } from '@element-plus/icons-vue'
 import videoApi from '../api/video'
 import videoAlbumApi from '../api/videoAlbum'
@@ -129,15 +129,15 @@ const nowText = ref(new Date().toLocaleString())
 let timer: ReturnType<typeof setInterval> | null = null
 
 const menuItems: MenuItem[] = [
-  { path: '/admin/videoList', label: '视频管理', icon: VideoCamera, countKey: 'video' },
-  { path: '/admin/courseManage', label: '合集管理', icon: Collection, countKey: 'album' },
-  { path: '/admin/comment', label: '评论管理', icon: ChatDotRound, countKey: 'comment' },
-  { path: '/admin/reply', label: '回复管理', icon: ChatLineRound, countKey: 'reply' },
-  { path: '/admin/users', label: '用户管理', icon: User, countKey: 'user' },
-  { path: '/admin/english', label: '词汇管理', icon: Reading, countKey: 'english' },
-  { path: '/admin/reviewLogs', label: '复习记录', icon: Notebook, countKey: 'reviewLog' },
-  { path: '/admin/reviewAnalytics', label: '复习分析', icon: TrendCharts, countKey: 'reviewLog' },
-  { path: '/admin/systemConfig', label: '系统配置', icon: Setting }
+  { path: '/admin/videoList', label: '视频管理', icon: VideoCamera},
+  { path: '/admin/courseManage', label: '合集管理', icon: Collection},
+  { path: '/admin/comment', label: '评论管理', icon: ChatDotRound},
+  { path: '/admin/reply', label: '回复管理', icon: ChatLineRound},
+  { path: '/admin/users', label: '用户管理', icon: User},
+  { path: '/admin/english', label: '词汇管理', icon: Reading},
+  { path: '/admin/reviewLogs', label: '复习记录', icon: Notebook},
+  { path: '/admin/reviewAnalytics', label: '复习分析', icon: TrendCharts},
+  // { path: '/admin/systemConfig', label: '系统配置', icon: Setting }
 ]
 
 const currentRouteLabel = computed(() => {
@@ -181,10 +181,10 @@ const fetchAdminCounts = async () => {
   }
 }
 
-const refreshAdminData = async () => {
-  await fetchAdminCounts()
-  ElMessage.success('数据已刷新')
-}
+// const refreshAdminData = async () => {
+//   await fetchAdminCounts()
+//   ElMessage.success('数据已刷新')
+// }
 
 type ThemeMode = 'light' | 'dark'
 const getChinaHour = () => {
@@ -211,10 +211,10 @@ const applyTheme = () => {
   localStorage.setItem('theme', theme.value)
 }
 
-const toggleTheme = () => {
-  theme.value = theme.value === 'dark' ? 'light' : 'dark'
-  applyTheme()
-}
+// const toggleTheme = () => {
+//   theme.value = theme.value === 'dark' ? 'light' : 'dark'
+//   applyTheme()
+// }
 
 const logout = () => {
   localStorage.removeItem('user')

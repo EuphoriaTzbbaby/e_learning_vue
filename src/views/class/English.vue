@@ -6,7 +6,7 @@
         <div class="header-actions">
           <el-input
             v-model="searchVal"
-            placeholder="请输入关键词、臭贝贝"
+            placeholder="请输入关键词"
             clearable
             prefix-icon="el-icon-search"
             size="large"

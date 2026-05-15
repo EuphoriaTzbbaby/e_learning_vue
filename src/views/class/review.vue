@@ -82,7 +82,7 @@
         <el-card shadow="hover" class="chart-card">
           <template #header>
             <div class="chart-header">
-              <b>📅 复习趋势</b>
+              <b>📅 复习记录</b>
               <el-button type="success" size="large" @click="exportCharts" :loading="exportingCharts">
                 <el-icon><Picture /></el-icon>
                 <span class="ml-1">导出图表</span>
@@ -404,11 +404,11 @@ const renderCharts = () => {
     const reviewCounts = dates.map((date) =>
       allLogs.value.filter((l) => l.lastReview.startsWith(date)).length
     );
-    const rememberRates = dates.map((date) => {
-      const logs = allLogs.value.filter((l) => l.lastReview.startsWith(date));
-      if (!logs.length) return 0;
-      return (logs.filter((l) => l.score >= 4).length / logs.length) * 100;
-    });
+    // const rememberRates = dates.map((date) => {
+    //   const logs = allLogs.value.filter((l) => l.lastReview.startsWith(date));
+    //   if (!logs.length) return 0;
+    //   return (logs.filter((l) => l.score >= 4).length / logs.length) * 100;
+    // });
 
     // ✅ 动态计算显示最近 10 天
     const total = dates.length;
@@ -419,20 +419,10 @@ const renderCharts = () => {
       tooltip: {
         trigger: "axis",
         formatter: (params: any) =>
-          `📅 ${params[0].axisValue}<br/>复习数: ${params[0].data}<br/>记住率: ${params[1].data.toFixed(1)}%`,
+          `📅 ${params[0].axisValue}<br/>复习数: ${params[0].data}`,
       },
       xAxis: { type: "category", data: dates, axisLabel: { fontSize: 10 } },
-      yAxis: [
-        { type: "value", name: "复习数", nameTextStyle: { fontSize: 10 } },
-        {
-          type: "value",
-          min: 0,
-          max: 100,
-          name: "记住率(%)",
-          nameTextStyle: { fontSize: 10 },
-          axisLabel: { formatter: "{value}%" },
-        },
-      ],
+      yAxis: { type: "value", name: "复习数", nameTextStyle: { fontSize: 10 } },
       dataZoom: [
         { type: "slider", show: true, xAxisIndex: 0, start, end: 100 },
         { type: "inside", xAxisIndex: 0, start, end: 100 },
@@ -444,16 +434,6 @@ const renderCharts = () => {
           data: reviewCounts,
           itemStyle: { color: "#3b82f6" },
           barWidth: "40%",
-        },
-        {
-          name: "记住率",
-          type: "line",
-          yAxisIndex: 1,
-          data: rememberRates,
-          smooth: true,
-          lineStyle: { color: "#10b981", width: 2 },
-          symbol: "circle",
-          symbolSize: 6,
         },
       ],
     });

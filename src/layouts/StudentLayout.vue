@@ -17,18 +17,11 @@
             <component :is="isCollapse ? 'Expand' : 'Fold'" />
           </el-icon>
         </el-button>
-        <!-- 主题切换 -->
-        <div class="theme-switch" @click="toggleTheme">
-          <el-icon>
-            <Moon v-if="theme === 'dark'" />
-            <Sunny v-else />
-          </el-icon>
-        </div>
         <!-- 用户下拉 - hover 触发 -->
         <el-dropdown trigger="hover">
           <div class="user-trigger">
             <div class="avatar-wrapper">
-              <div class="user-id-avatar">{{ userId }}</div>
+              <div class="user-id-avatar">{{ displayName }}</div>
             </div>
             <div class="user-info-text">
               <span class="username">{{ username }}</span>
@@ -36,7 +29,7 @@
           </div>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item @click="goToProfile">个人信息</el-dropdown-item>
+              <!-- <el-dropdown-item @click="goToProfile">个人信息</el-dropdown-item> -->
               <el-dropdown-item divided @click="logout">退出登录</el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -116,15 +109,15 @@
             </el-menu-item> -->
 
             <!-- 个人中心 -->
-            <div class="menu-group-title" v-if="!isCollapse">个人</div>
+            <!-- <div class="menu-group-title" v-if="!isCollapse">个人</div> -->
             <!-- <el-menu-item index="/favorites">
               <el-icon><Star /></el-icon>
               <span>我的收藏</span>
             </el-menu-item> -->
-            <el-menu-item index="/settings">
+            <!-- <el-menu-item index="/settings">
               <el-icon><Setting /></el-icon>
               <span>设置</span>
-            </el-menu-item>
+            </el-menu-item> -->
           </el-menu>
         </el-aside>
       </transition>
@@ -141,55 +134,22 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
-  Setting,
-  Sunny,
-  Moon,
   VideoCamera,
   Reading,
   TrendCharts,
-  // Coin,
   Trophy,
   Grid,
   ChatDotRound,
   DataAnalysis,
 } from '@element-plus/icons-vue'
 
-type ThemeMode = 'light' | 'dark'
-
-const getChinaHour = () => {
-  const parts = new Intl.DateTimeFormat('zh-CN', {
-    timeZone: 'Asia/Shanghai',
-    hour: '2-digit',
-    hour12: false
-  }).formatToParts(new Date())
-  const h = parts.find((p) => p.type === 'hour')?.value
-  const n = h ? Number(h) : NaN
-  return Number.isFinite(n) ? n : new Date().getHours()
-}
-
-const getDefaultThemeByChinaTime = (): ThemeMode => {
-  const h = getChinaHour()
-  return h >= 7 && h < 19 ? 'light' : 'dark'
-}
-
-const savedTheme = localStorage.getItem('theme')
-const theme = ref<ThemeMode>(savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : getDefaultThemeByChinaTime())
-
-const applyTheme = () => {
-  document.documentElement.classList.toggle('dark', theme.value === 'dark')
-  localStorage.setItem('theme', theme.value)
-}
-
-const toggleTheme = () => {
-  theme.value = theme.value === 'dark' ? 'light' : 'dark'
-  applyTheme()
-}
-
 const router = useRouter()
 const route = useRoute()
 const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null
 const userId = currentUser.id || '?'
-const username = currentUser.username
+const username = currentUser.username || currentUser.email || ''
+// 截取名字的前两个字符显示在头像中
+const displayName = username.length > 2 ? username.substring(0, 2) : username
 
 const activeMenu = ref(route.path)
 const isCollapse = ref(false) // 折叠
@@ -203,15 +163,14 @@ const toggleHidden = () => {
   isHidden.value = !isHidden.value
 }
 
-const goToProfile = () => {
-  router.push('/student/profile')
-}
+// const goToProfile = () => {
+//   router.push('/student/profile')
+// }
 const logout = () => {
   router.push('/login')
 }
 onMounted(() => {
   console.log(userId, 99999)
-  applyTheme()
 })
 </script>
 
@@ -271,24 +230,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.theme-switch {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #fff;
-  user-select: none;
-  padding: 10px;
-  border-radius: 10px;
-  transition: all 0.3s ease;
-  font-size: 18px;
-}
-
-.theme-switch:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: rotate(15deg);
 }
 
 /* ========== 用户头像区域 ========== */
@@ -574,17 +515,4 @@ onMounted(() => {
   background: rgba(102, 126, 234, 0.8);
 }
 
-/* ========== 深色模式适配 ========== */
-:deep(.dark) .main-content {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-}
-
-:deep(.dark) .el-menu-item {
-  color: rgba(255, 255, 255, 0.65);
-}
-
-:deep(.dark) .el-menu-item:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: #fff !important;
-}
 </style>

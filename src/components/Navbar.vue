@@ -2,13 +2,16 @@
     <el-header class="navbar">
         <div class="logo">学生在线观看视频</div>
         <div class="spacer"></div>
-        <div class="user-id-avatar">{{ userId }}</div>
+        <div class="user-id-avatar">{{ displayName }}</div>
     </el-header>
 </template>
 
 <script lang="ts" setup>
 const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null
 const userId = currentUser.id || '?'
+const userName = currentUser.username || currentUser.email || userId
+// 截取名字的前两个字符显示
+const displayName = userName.length > 2 ? userName.substring(0, 2) : userName
 </script>
 
 <style scoped>

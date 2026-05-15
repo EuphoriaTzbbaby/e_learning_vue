@@ -5,7 +5,7 @@
         <div class="card-header">
           <div class="title">词汇复习记录管理</div>
           <div class="header-actions">
-            <el-button :loading="loading" @click="fetchAll">刷新</el-button>
+            <!-- <el-button :loading="loading" @click="fetchAll">刷新</el-button> -->
             <el-button
               v-if="selectedIds.length > 0"
               type="danger"
@@ -21,7 +21,7 @@
       <div class="filters">
         <el-input
           v-model="keyword"
-          placeholder="搜索单词/翻译/核心词"
+          placeholder="搜索词汇/翻译/核心词"
           clearable
           class="filter-item keyword"
           @keyup.enter="currentPage = 1"
@@ -36,7 +36,7 @@
         <el-select v-model="scoreFilter" placeholder="熟悉度" clearable class="filter-item score">
           <el-option v-for="n in 5" :key="n" :label="String(n)" :value="n" />
         </el-select>
-        <el-date-picker
+        <!-- <el-date-picker
           v-model="dateRange"
           type="daterange"
           range-separator="~"
@@ -45,7 +45,7 @@
           value-format="YYYY-MM-DD"
           class="filter-item date"
           @change="currentPage = 1"
-        />
+        /> -->
         <el-button @click="resetFilters">重置</el-button>
       </div>
 
@@ -57,14 +57,14 @@
         style="width: 100%"
         @selection-change="onSelectionChange"
       >
-        <el-table-column type="selection" width="55" align="center" />
-        <el-table-column prop="logId" label="日志ID" width="100" align="center" sortable />
-        <el-table-column label="用户" width="220">
+        <!-- <el-table-column type="selection" width="55" align="center" /> -->
+        <el-table-column prop="logId" label="日志编号" width="100" align="center" sortable />
+        <el-table-column label="用户名" width="220">
           <template #default="{ row }">
             <div class="user-cell">
               <span class="user-name">{{ getUserName(row.userId) }}</span>
               <el-tag v-if="getUserState(row.userId) === 1" type="danger" size="small">禁用</el-tag>
-              <span class="user-id">({{ row.userId }})</span>
+              <!-- <span class="user-id">({{ row.userId }})</span> -->
             </div>
           </template>
         </el-table-column>

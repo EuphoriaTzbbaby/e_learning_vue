@@ -27,14 +27,14 @@
                 border 
                 stripe
             >
-                <el-table-column prop="id" label="ID" width="80" align="center" sortable />
+                <el-table-column prop="id" label="评论编号" width="100" align="center" sortable />
                 <el-table-column prop="content" label="评论内容" min-width="300">
                     <template #default="{ row }">
                         <div class="comment-content-cell">{{ row.content }}</div>
                     </template>
                 </el-table-column>
-                <el-table-column prop="userId" label="用户 ID" width="100" align="center" />
-                <el-table-column prop="videoId" label="视频 ID" width="100" align="center" />
+                <!-- <el-table-column prop="userId" label="用户 ID" width="100" align="center" />
+                <el-table-column prop="videoId" label="视频 ID" width="100" align="center" /> -->
                 <el-table-column prop="createTime" label="创建时间" width="180" align="center" sortable />
                 <el-table-column label="操作" width="150" align="center" fixed="right">
                     <template #default="{ row }">

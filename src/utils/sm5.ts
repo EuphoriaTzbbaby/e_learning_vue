@@ -1,19 +1,3 @@
-// utils/sm2.
-/*
-If quality >= 3:
-    If repetition = 1:
-        interval = 1
-    Else if repetition = 2:
-        interval = 6
-    Else:
-        interval = interval * EF
-    EF = EF + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
-    if EF < 1.3: EF = 1.3
-Else:
-    repetition = 0
-    interval = 1
-
-*/
 export function sm2Update(reviewState : any, score : number) {
   // score: 用户评分 (0~5)，例如: 5=非常熟悉，0=完全忘记
 

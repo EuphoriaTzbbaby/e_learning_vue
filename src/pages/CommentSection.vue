@@ -13,7 +13,7 @@
         <ul class="comment-list" role="list" aria-label="评论列表">
             <li v-for="comment in comments" :key="comment.id" class="comment-item" role="listitem">
                 <div class="comment-header">
-                    <span class="comment-user">{{ comment.userId }}</span>
+                    <span class="comment-user">{{ comment.username }}</span>
                     <span class="comment-time">{{ comment.createTime }}</span>
                 </div>
                 <div class="comment-content markdown-body" v-html="renderMarkdown(comment.content)"></div>
@@ -21,12 +21,12 @@
                 <ul class="reply-list" v-if="comment.replies.length" role="list" aria-label="回复列表">
                     <li v-for="reply in comment.replies" :key="reply.id" class="reply-item" role="listitem">
                         <div class="comment-header">
-                            <span class="comment-user">{{ reply.userId }}</span>
+                            <span class="comment-user">{{ reply.username }}</span>
                             <span class="comment-time">{{ reply.createTime }}</span>
                         </div>
                         <div class="comment-content reply-content">
                             <div v-if="reply.replyTo" class="reply-header">
-                                回复 <span class="reply-to">@{{ reply.replyTo }}</span>：
+                                回复 <span class="reply-to">@{{ reply.replyToUsername }}</span>：
                             </div>
                             <div class="markdown-body" v-html="renderMarkdown(reply.content)"></div>
                         </div>
@@ -75,6 +75,7 @@ import { ref, onMounted, watch } from 'vue'
 import dayjs from 'dayjs'
 import commentApi from '../api/comment'
 import replyApi from '../api/reply'
+import usersApi from '../api/users'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
 import 'github-markdown-css/github-markdown-light.css'
@@ -89,11 +90,13 @@ interface FetchedComment {
     id: number
     videoId: number
     userId: number
+    username?: string
     content: string
     createTime: string
 }
 
 interface Comment extends FetchedComment {
+    username: string
     replies: Reply[]
 }
 
@@ -101,13 +104,17 @@ interface Reply {
     id: number
     commentId: number
     userId: number
+    username: string
     content: string
     replyTo?: number
+    replyToUsername?: string
     createTime: string
 }
 
 const comments = ref<Comment[]>([])
 const currentUser = JSON.parse(localStorage.getItem('user') || '{}') || null
+// 用户名缓存：userId -> username
+const userMap = ref<Map<number, string>>(new Map())
 const newComment = ref('')
 const replyContent = ref('')
 const showReplyInputId = ref<number | null>(null)
@@ -201,16 +208,45 @@ const props = defineProps({
     }
 })
 
+// 获取所有用户信息并缓存
+async function fetchUsers() {
+    try {
+        const response = await usersApi.getAllUsers()
+        const users = response.data || []
+        for (const user of users) {
+            userMap.value.set(user.id, user.username)
+        }
+    } catch (error) {
+        console.error('获取用户列表失败：', error)
+    }
+}
+
 async function fetchComments() {
     console.log('fetch comments', props.videoId)
     try {
+        // 先获取所有用户信息
+        await fetchUsers()
+        
         const response = await commentApi.getCommentsByVideoId(props.videoId)
-        comments.value = response.data
+        comments.value = response.data || []
 
         for (const comment of comments.value) {
+            // 为评论添加用户名
+            comment.username = userMap.value.get(comment.userId) || `用户${comment.userId}`
+            
             try {
                 const repliesResponse = await replyApi.getRepliesByCommentId(comment.id)
-                comment.replies = repliesResponse.data || []
+                const replies = repliesResponse.data || []
+                
+                // 为回复添加用户名和回复目标用户名
+                for (const reply of replies) {
+                    reply.username = userMap.value.get(reply.userId) || `用户${reply.userId}`
+                    if (reply.replyTo) {
+                        reply.replyToUsername = userMap.value.get(reply.replyTo) || `用户${reply.replyTo}`
+                    }
+                }
+                
+                comment.replies = replies
             } catch (error) {
                 console.error(`获取评论${comment.id}的回复失败`, error)
                 comment.replies = []
@@ -236,16 +272,16 @@ onMounted(() => {
 .comment-section {
     width: 100%;
     max-width: 900px;
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    background: #ffffff;
     border-radius: 20px;
     padding: 32px;
     box-shadow: 
-        0 4px 24px rgba(0, 0, 0, 0.06),
-        0 1px 2px rgba(0, 0, 0, 0.04);
+        0 4px 24px rgba(102, 126, 234, 0.08),
+        0 1px 2px rgba(102, 126, 234, 0.06);
     display: flex;
     flex-direction: column;
     font-size: 15px;
-    color: #2c3e50;
+    color: #4a5568;
     border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
@@ -253,7 +289,7 @@ onMounted(() => {
 .comment-section h3 {
     margin-bottom: 24px;
     font-size: 22px;
-    color: #1a1a2e;
+    color: #4a5568;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -288,10 +324,10 @@ onMounted(() => {
     outline: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
-    color: #374151;
+    color: #4a5568;
     user-select: text;
     line-height: 1.7;
-    background: linear-gradient(145deg, #fafbfc 0%, #ffffff 100%);
+    background: #ffffff;
 }
 
 .comment-input textarea:focus {
@@ -569,7 +605,7 @@ onMounted(() => {
     outline: none;
     transition: all 0.3s ease;
     font-family: inherit;
-    color: #374151;
+    color: #4a5568;
     user-select: text;
     line-height: 1.6;
     background: #ffffff;
@@ -611,7 +647,7 @@ onMounted(() => {
 .markdown-body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     line-height: 1.8;
-    color: #475569;
+    color: #374151;
 }
 
 .markdown-body h1,
@@ -624,7 +660,7 @@ onMounted(() => {
     margin-bottom: 0.6em;
     font-weight: 700;
     line-height: 1.3;
-    color: #1e293b;
+    color: #4a5568;
 }
 
 .markdown-body h1 { font-size: 1.5em; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.3em; }
@@ -652,17 +688,17 @@ onMounted(() => {
     overflow: auto;
     font-size: 85%;
     line-height: 1.6;
-    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    background: #f8fafc;
     border-radius: 12px;
     margin: 16px 0;
-    border: 1px solid #334155;
+    border: 1px solid #e2e8f0;
 }
 
 .markdown-body pre code {
     background-color: transparent;
     padding: 0;
     font-size: 100%;
-    color: #e2e8f0;
+    color: #7c3aed;
     border: none;
 }
 

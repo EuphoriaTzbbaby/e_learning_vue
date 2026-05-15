@@ -27,20 +27,18 @@
                 border 
                 stripe
             >
-                <el-table-column prop="id" label="ID" width="80" align="center" sortable />
+                <el-table-column prop="id" label="回复编号" width="100" align="center" sortable />
                 <el-table-column prop="content" label="回复内容" min-width="300">
                     <template #default="{ row }">
                         <div class="reply-content-cell">{{ row.content }}</div>
                     </template>
                 </el-table-column>
-                <el-table-column label="用户关系" width="200" align="center">
+                <el-table-column label="发布人" width="180" align="center">
                     <template #default="{ row }">
-                        <el-tag size="small">{{ row.userId }}</el-tag>
-                        <el-icon class="reply-arrow"><Right /></el-icon>
-                        <el-tag size="small" type="info">{{ row.replyToUserId }}</el-tag>
+                        <el-tag size="small" type="primary">{{ getUserName(row.userId) }}</el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column prop="commentId" label="所属评论" width="100" align="center" />
+                <!-- <el-table-column prop="commentId" label="所属评论" width="100" align="center" /> -->
                 <el-table-column prop="createTime" label="时间" width="180" align="center" sortable />
                 <el-table-column label="操作" width="150" align="center" fixed="right">
                     <template #default="{ row }">
@@ -98,6 +96,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { Plus, Search, Refresh, Right } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
 import replyApi from '../../api/reply';
+import usersApi from '../../api/users';
 
 export default defineComponent({
     name: 'ReplyList',
@@ -108,6 +107,29 @@ export default defineComponent({
         const currentPage = ref(1);
         const pageSize = 10;
         const searchVal = ref('');
+        
+        // 用户名缓存：userId -> username
+        const userMap = ref<Map<number, string>>(new Map());
+
+        // 获取所有用户信息并缓存
+        const fetchUsers = async () => {
+            try {
+                const response = await usersApi.getAllUsers();
+                const users = Array.isArray(response.data) ? response.data : [];
+                for (const user of users) {
+                    if (user.id) {
+                        userMap.value.set(user.id, user.username || user.email || `用户${user.id}`);
+                    }
+                }
+            } catch (error) {
+                console.error('获取用户列表失败:', error);
+            }
+        };
+
+        // 根据userId获取用户名
+        const getUserName = (userId: number) => {
+            return userMap.value.get(userId) || `用户${userId}`;
+        };
 
         const dialogVisible = ref(false);
         const isEditMode = ref(false);
@@ -123,6 +145,9 @@ export default defineComponent({
         const fetchReplies = async () => {
             loading.value = true;
             try {
+                // 先获取所有用户信息
+                await fetchUsers();
+                
                 const response = await replyApi.getAllReplys();
                 replies.value = Array.isArray(response.data) ? response.data : [];
             } catch (error) {
@@ -240,7 +265,8 @@ export default defineComponent({
             deleteReply,
             handlePageChange,
             handleSearch,
-            resetSearch
+            resetSearch,
+            getUserName
         };
     }
 });

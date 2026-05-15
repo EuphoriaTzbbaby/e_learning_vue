@@ -33,7 +33,7 @@
           <div class="title-section">
             <div class="title">词汇管理</div>
             <el-tag v-if="rawCount > 0" type="info" effect="plain" size="small">
-              去重后 {{ uniqueCount }} 条（原始 {{ rawCount }} 条，重复 {{ duplicateCount }} 条）
+              共 {{ uniqueCount }} 条
             </el-tag>
           </div>
           <div class="header-actions">
@@ -70,8 +70,8 @@
             stripe
             @selection-change="handleSelectionChange"
           >
-            <el-table-column type="selection" width="55" align="center" />
-            <el-table-column prop="userId" label="用户ID" width="100" align="center" />
+            <!-- <el-table-column type="selection" width="55" align="center" /> -->
+            <el-table-column prop="userId" label="用户编号" width="100" align="center" />
             <el-table-column prop="content" label="外文" min-width="180">
               <template #default="{ row }">
                 <span class="word">{{ row.content }}</span>
@@ -181,32 +181,8 @@ const formWord = ref<any>({
   coreKey: ''
 })
 
-const normalizeKey = (s: string) => s.trim().toLowerCase()
-
-const pickNewer = (a: English, b: English) => {
-  const ta = dayjs(a.updateDate || a.createDate || 0).valueOf()
-  const tb = dayjs(b.updateDate || b.createDate || 0).valueOf()
-  return tb >= ta ? b : a
-}
-
-const uniqueRows = computed(() => {
-  const map = new Map<string, English>()
-  for (const row of rawRows.value) {
-    const content = typeof row?.content === 'string' ? row.content : ''
-    const key = normalizeKey(content)
-    if (!key) continue
-    const existed = map.get(key)
-    if (!existed) {
-      map.set(key, row)
-      continue
-    }
-    map.set(key, pickNewer(existed, row))
-  }
-  return Array.from(map.values()).sort((a, b) => (b.egId || 0) - (a.egId || 0))
-})
-
 const filteredRows = computed(() => {
-  let result = uniqueRows.value
+  let result = rawRows.value
   const kw = keyword.value.trim().toLowerCase()
   
   if (kw) {
@@ -227,7 +203,7 @@ const filteredRows = computed(() => {
     }
   }
 
-  return result
+  return result.sort((a, b) => (b.egId || 0) - (a.egId || 0))
 })
 
 const pagedRows = computed(() => {
@@ -236,8 +212,7 @@ const pagedRows = computed(() => {
 })
 
 const rawCount = computed(() => rawRows.value.length)
-const uniqueCount = computed(() => uniqueRows.value.length)
-const duplicateCount = computed(() => Math.max(0, rawCount.value - uniqueCount.value))
+const uniqueCount = computed(() => rawRows.value.length)
 const userCount = computed(() => {
   const uniqueUsers = new Set(rawRows.value.map(r => r.userId).filter(Boolean))
   return uniqueUsers.size
@@ -356,13 +331,13 @@ const exportVocabulary = () => {
 const initCharts = async () => {
   await nextTick()
   
-  // 词汇分类统计（按 coreKey 分类，使用去重后的数据）
+  // 词汇分类统计（按 coreKey 分类）
   if (categoryChartRef.value) {
     categoryChart = echarts.init(categoryChartRef.value)
     
     // 统计每个 coreKey 的数量
     const coreKeyMap = new Map<string, number>()
-    uniqueRows.value.forEach(row => {
+    filteredRows.value.forEach((row: English) => {
       const key = row.coreKey || '未分类'
       coreKeyMap.set(key, (coreKeyMap.get(key) || 0) + 1)
     })
@@ -396,7 +371,7 @@ const initCharts = async () => {
   if (trendChartRef.value) {
     trendChart = echarts.init(trendChartRef.value)
     
-    // 统计近7天的新增词汇数
+    // 统计近7天的新增词汇数（基于真实数据）
     const days: string[] = []
     const counts: number[] = []
     
@@ -406,7 +381,8 @@ const initCharts = async () => {
       days.push(date.format('M/D'))
       
       // 统计当天新增的词汇数量
-      const dayCount = rawRows.value.filter(row => {
+      const dayCount = filteredRows.value.filter((row: English) => {
+        if (!row.createDate) return false
         const createDate = dayjs(row.createDate).format('YYYY-MM-DD')
         return createDate === dateStr
       }).length
