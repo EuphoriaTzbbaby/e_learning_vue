@@ -300,7 +300,7 @@ const renderCharts = async () => {
   await nextTick()
   if (!trendRef.value || !scoreRef.value) return
 
-  const { days, counts, oks, misses, rates, avg7Counts, avg7Rates, weekendRanges } = buildTrendData()
+  const { days, oks, misses} = buildTrendData()
   const buckets = buildScoreDist()
 
   if (!trendChart) trendChart = echarts.init(trendRef.value)

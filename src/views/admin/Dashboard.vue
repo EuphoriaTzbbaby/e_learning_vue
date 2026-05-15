@@ -147,7 +147,7 @@ import {
   ChatDotRound,
   Reading,
   Download,
-  More,
+  // More,
   Star,
   Document
 } from '@element-plus/icons-vue'
@@ -598,9 +598,9 @@ const confirmExport = async () => {
 // }
 
 // 加载更多活动
-const loadMoreActivities = () => {
-  ElMessage.info('活动详情功能开发中...')
-}
+// const loadMoreActivities = () => {
+//   ElMessage.info('活动详情功能开发中...')
+// }
 
 const handleResize = () => {
   userGrowthChart?.resize()
